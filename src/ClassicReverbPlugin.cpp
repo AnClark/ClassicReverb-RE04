@@ -8,15 +8,15 @@
 ClassicReverbPlugin::ClassicReverbPlugin()
     : DISTRHO::Plugin(kParamCount, 33, 0)
 {
-    // Set default parameter values (normalised 0–1)
-    fParams[kParamRoomSize] = roomSizeToNorm(80.0f);   // ~80 m²
-    fParams[kParamDamping]  = 0.4f;
-    fParams[kParamPreDelay] = 0.5f;   // 0 ms
-    fParams[kParamHiDamp]   = 0.3f;
-    fParams[kParamLoCut]    = 0.2f;
-    fParams[kParamEarlyRef] = 0.76f;  // ~0 dB
+    // Default parameter values – physical units matching initParameter() ranges
+    fParams[kParamRoomSize] = 80.0f;    // m²
+    fParams[kParamDamping]  = 40.0f;    // %
+    fParams[kParamPreDelay] = 0.0f;     // ms
+    fParams[kParamHiDamp]   = 30.0f;    // %
+    fParams[kParamLoCut]    = 80.0f;    // Hz
+    fParams[kParamEarlyRef] = -6.0f;    // dB
     fParams[kParamMix]      = 0.35f;
-    fParams[kParamLevel]    = 0.5f;   // 0 dB
+    fParams[kParamLevel]    = 0.0f;     // dB
 
     sampleRateChanged(getSampleRate());
 }
