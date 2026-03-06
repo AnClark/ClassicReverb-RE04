@@ -610,13 +610,15 @@ private:
             fCombLen[c] = len;
         }
 
-        // ── Room damping (feedback coefficient) ───────────────────────
-        // From FUN_004845b8:
-        //   fRoomCoeff = kDampingCoeffB + kDampingCoeffA * (1.0 - roomNorm)
-        //              = 0.4 + 0.58 * (1.0 - roomNorm)   → range [0.40, 0.98]
-        //   sqrt(1.0 - fRoomCoeff)  → sqrt of the complement used for gain normalisation
-        // The room coefficient is the comb feedback gain.
-        fRoomCoeff   = kDampingCoeffB + kDampingCoeffA * (1.0f - roomNorm);
+        // ── Comb feedback coefficient (controlled by Damping, NOT Room Size) ──
+        // From FUN_004845b8 (param at offset 0xc4 = Damping):
+        //   fRoomCoeff = kDampingCoeffB + kDampingCoeffA * (1.0 - dampingNorm)
+        //              = 0.4 + 0.58 * (1.0 - dampingNorm)   → range [0.40, 0.98]
+        //   dampingNorm=0 (no damping)  → coeff=0.98 → long tail  ✓
+        //   dampingNorm=1 (full damping) → coeff=0.40 → short tail ✓
+        // Room Size only affects the comb delay *lengths*, not the feedback gain.
+        const float dampingNorm = std::clamp(fParams[kParamDamping] / 100.0f, 0.0f, 1.0f);
+        fRoomCoeff   = kDampingCoeffB + kDampingCoeffA * (1.0f - dampingNorm);
         fRoomCoeffSq = std::sqrt(std::max(0.0f, 1.0f - fRoomCoeff));  // normalisation factor
 
         // ── Frequency damping (hi-damp) ────────────────────────────────
