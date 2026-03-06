@@ -16,7 +16,7 @@
  *  6. Dry/Wet mix + Output level
  *
  * Parameters:
- *   0  Room Size  0.0625 … 640 m²   (normalised 0–1 in VST)
+ *   0  Room Size  0.625 … 640 m²    (normalised 0–1 in VST)
  *   1  Damping    0 … 100 %
  *   2  Pre-delay  -150 … 150 ms     (0.5 = 0 ms)
  *   3  Hi-Damp    0 … 100 %
@@ -270,7 +270,7 @@ protected:
             param.name = "Room Size";
             param.symbol = "room_size";
             param.unit  = "m^2";
-            param.ranges.min = 0.0625f;
+            param.ranges.min = 0.625f;
             param.ranges.max = 640.0f;
             param.hints |= kParameterIsLogarithmic;
             param.ranges.def = 80.0f;
@@ -479,7 +479,7 @@ private:
     Range getParameterRange(uint32_t index) const
     {
         switch (index) {
-        case kParamRoomSize: return { 0.0625f, 640.0f  };
+        case kParamRoomSize: return { 0.625f,  640.0f  };
         case kParamDamping:  return { 0.0f,    100.0f  };
         case kParamPreDelay: return { -150.0f, 150.0f  };
         case kParamHiDamp:   return { 0.0f,    100.0f  };
@@ -495,10 +495,10 @@ private:
     static float roomSizeToNorm(float sqm)
     {
         // The original plugin stored a normalised value that scaled the comb
-        // delay lengths.  A room area of 0.0625 m² → norm=0, 640 m² → norm=1.
-        // Using simple log2 mapping: norm = (log2(sqm) - log2(0.0625)) / (log2(640)-log2(0.0625))
-        // log2(0.0625)=-4, log2(640)≈9.32 → range ~13.32
-        float logMin = -4.0f;
+        // delay lengths.  A room area of 0.625 m² → norm=0, 640 m² → norm=1.
+        // Using simple log2 mapping: norm = (log2(sqm) - log2(0.625)) / (log2(640)-log2(0.625))
+        // log2(0.625)≈-0.678, log2(640)≈9.322 → range ~10.0
+        float logMin = std::log2f(0.625f);
         float logMax = std::log2f(640.0f);
         float norm   = (std::log2f(sqm) - logMin) / (logMax - logMin);
         return std::clamp(norm, 0.0f, 1.0f);
@@ -565,7 +565,7 @@ private:
         // At norm=0: scale=1; at norm=1: scale=2^32 (very large – likely that's continuous param)
         // Re-reading disasm: it's actually: scale = exp(ln(2) * kRoomSizeBase * norm)
         // where kRoomSizeBase here is DAT_004848d0 = 32
-        // BUT the param is stored normalised. The Room Size range is 0.0625–640 m².
+        // BUT the param is stored normalised. The Room Size range is 0.625–640 m².
         // The DLL param storage offset 0xbc stores the normalised value 0–1.
         // So: roomScale = exp(0.693147 * 32 * norm_room) = 2^(32 * norm_room)
         // norm_room = 0: scale=1; norm=1: scale=4 billion → absurd for samples.
@@ -599,7 +599,7 @@ private:
         // This gives at norm=0: scale=1 (tiny room), norm=1: scale=32 (large room)
         // At sr=44100, comb[0] norm=0.5: scale=sqrt(32)≈5.66 → 2092*5.66≈522 samples ≈ 11.8 ms ✓
 
-        float roomNorm = std::clamp((fParams[kParamRoomSize] - 0.0625f) / (640.0f - 0.0625f),
+        float roomNorm = std::clamp((fParams[kParamRoomSize] - 0.625f) / (640.0f - 0.625f),
                                     0.0f, 1.0f);
         float roomScale = std::pow(kRoomSizeBase, roomNorm);
 
