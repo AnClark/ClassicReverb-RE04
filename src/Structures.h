@@ -22,10 +22,15 @@ enum Parameters
 // ─────────────────────────────────────────────────────────────────────────────
 // Circular buffer helpers (fixed maximum size)
 // ─────────────────────────────────────────────────────────────────────────────
-static constexpr int kMaxCombSamples = 13000; // > max comb buffer size
-static constexpr int kMaxApSamples   = 1200;  // > max AP buffer size
-static constexpr int kMaxErSamples   = 300;   // > ER tap at 44.1 kHz
-static constexpr int kMaxPdSamples   = 15000; // > 300 ms @ 44.1 kHz
+// Buffer sizes are scaled for sample rates up to 192 kHz.
+// Derivation (192 kHz, room scale = 32):
+//   kMaxCombSamples : ceil(0.004007 * 32 * 192000) + 8  = 24 563  → 25 000
+//   kMaxErSamples   : ceil(0.003520 *      192000) + 5  =    681  →    700
+//   kMaxPdSamples   : ceil(0.151    *      192000) + 4  = 28 996  → 29 200
+static constexpr int kMaxCombSamples = 25000;
+static constexpr int kMaxApSamples   = 1200;  // max AP delay ≈ 61 @ 192 kHz
+static constexpr int kMaxErSamples   = 700;
+static constexpr int kMaxPdSamples   = 29200;
 
 struct CircBuf
 {
