@@ -20,7 +20,8 @@ add_subdirectory("${DPF_ROOT}" dpf EXCLUDE_FROM_ALL)
 dpf_add_plugin(ClassicReverb
     TARGETS     vst2 vst3 clap
     FILES_DSP
-        src/ClassicReverb.cpp
+        src/ClassicReverbPlugin.cpp
+        src/CoreDSP.cpp
     # No UI — headless plugin
 )
 
