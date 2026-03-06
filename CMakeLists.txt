@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.15)
+project(ClassicReverb VERSION 1.0.0)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DPF (DISTRHO Plugin Framework)
+# ─────────────────────────────────────────────────────────────────────────────
+set(DPF_ROOT "${PROJECT_SOURCE_DIR}/dpf" CACHE PATH "Path to the DPF source tree")
+
+if(NOT EXISTS "${DPF_ROOT}/CMakeLists.txt")
+    message(FATAL_ERROR
+        "DPF not found at '${DPF_ROOT}'.\n"
+        "Please pass -DDPF_ROOT=<path> to CMake or place the dpf folder next to ClassicReverb.")
+endif()
+
+add_subdirectory("${DPF_ROOT}" dpf EXCLUDE_FROM_ALL)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plugin targets
+# ─────────────────────────────────────────────────────────────────────────────
+dpf_add_plugin(ClassicReverb
+    TARGETS     vst2 vst3 clap
+    FILES_DSP
+        src/ClassicReverb.cpp
+    # No UI — headless plugin
+)
+
+# DistrhoPluginInfo.h must be findable by the DPF internal headers
+# DPF adds <dpf>/distrho to the include path, but not the project source dir.
+target_include_directories(ClassicReverb PUBLIC src)
+
+# Ensure C++17 (needed for std::clamp etc.)
+target_compile_features(ClassicReverb PUBLIC cxx_std_17)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Compiler warnings / options
+# ─────────────────────────────────────────────────────────────────────────────
+if(MSVC)
+    target_compile_options(ClassicReverb PRIVATE /W3 /WX-)
+else()
+    target_compile_options(ClassicReverb PRIVATE
+        -Wall -Wno-unused-variable -ffast-math)
+endif()
