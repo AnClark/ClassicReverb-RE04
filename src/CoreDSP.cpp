@@ -20,7 +20,7 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
 
         // ────── Pre-delay ────────────────────────────────────────────
         float pdL, pdR;
-        fPreDelay.readAndWrite(dryL, dryR, pdL, pdR);
+        fPreDelay.process(dryL, dryR, pdL, pdR, fPreDelaySamples);
 
         // ────── Early reflections (7-tap) ────────────────────────────
         fErBuf.write(pdL + pdR);   // mono sum into ER buffer
@@ -219,17 +219,12 @@ void ClassicReverbPlugin::updateCoefficients()
     fEarlyRefGain = std::pow(10.0f, fParams[kParamEarlyRef] / 20.0f);
 
     // ── Pre-delay length ──────────────────────────────────────────-
-    // pre-delay in ms: sign = (param_c0 < 0.5 ? negative : positive direction)
-    // Abs value = abs(param_c0 - 0.5) * 300 ms
-    // In original: param_c0 (offset 0xc0) stored as 0..(+/-)150ms normalised.
-    // We use -150..+150 ms directly as physical unit.
+    // Only the sample count is updated; the ring-buffer write pointer is
+    // never touched here, so no glitch occurs on parameter change.
     {
-        float pdMs = fParams[kParamPreDelay]; // -150..+150 ms
+        float pdMs = fParams[kParamPreDelay]; // −150…+150 ms
         int pdSamples = (int)(std::abs(pdMs) * fSampleRate / 1000.0f + 0.5f);
-        pdSamples = std::max(1, std::min(pdSamples, fPreDelay.size - 1));
-        fPreDelay.size = pdSamples <= 1 ? 1 :
-                            std::min(pdSamples, kMaxPdSamples);
-        // Reset position stays valid since we clamp
+        fPreDelaySamples = std::min(pdSamples, kMaxPdSamples - 1);
     }
 
     // ── Lo-Cut highpass biquad ─────────────────────────────────────

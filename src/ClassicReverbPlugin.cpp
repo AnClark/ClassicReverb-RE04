@@ -169,9 +169,10 @@ void ClassicReverbPlugin::allocateBuffers()
         fCombDampState[c] = 0.0f;
     }
 
-    // Pre-delay: ±150 ms
-    int pdMax = (int)(0.151f * sr) + 4;
-    fPreDelay.reset(pdMax < kMaxPdSamples ? pdMax : kMaxPdSamples);
+    // Pre-delay: always allocate the full buffer; delay length is stored
+    // separately in fPreDelaySamples and passed per-call in run().
+    fPreDelay.reset();
+    fPreDelaySamples = 0;
 
     // Lo-Cut biquad state
     fLoCutXL[0] = fLoCutXL[1] = fLoCutYL[0] = fLoCutYL[1] = 0.0f;

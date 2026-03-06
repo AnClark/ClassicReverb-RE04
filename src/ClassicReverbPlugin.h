@@ -81,6 +81,7 @@ private:
 
     // Pre-delay
     PreDelayBuf fPreDelay;
+    int         fPreDelaySamples = 0;  // current read-offset in samples
 
     // Early reflections
     ErBuf fErBuf;

@@ -90,32 +90,37 @@ struct SmallCircBuf
     }
 };
 
-// Pre-delay stores stereo pairs
+// Pre-delay stores stereo pairs.
+// Uses a fixed-size ring buffer (always kMaxPdSamples).  The desired delay
+// length is passed per-call so that changing it mid-stream never invalidates
+// the write pointer and never requires a buffer clear.
 struct PreDelayBuf
 {
-    float  bufL[kMaxPdSamples];
-    float  bufR[kMaxPdSamples];
-    int    pos  = 0;
-    int    size = 1;
+    float bufL[kMaxPdSamples];
+    float bufR[kMaxPdSamples];
+    int   writePos = 0;
 
-    void reset(int n)
+    void reset()
     {
-        size = (n < 1 ? 1 : (n > kMaxPdSamples ? kMaxPdSamples : n));
-        pos  = 0;
-        std::memset(bufL, 0, sizeof(float) * (unsigned)size);
-        std::memset(bufR, 0, sizeof(float) * (unsigned)size);
+        writePos = 0;
+        std::memset(bufL, 0, sizeof(bufL));
+        std::memset(bufR, 0, sizeof(bufR));
     }
 
-    void readAndWrite(float inL, float inR, float& outL, float& outR)
+    // Write inL/inR at the current write head, then read back delaySamples
+    // behind it.  delaySamples == 0 → pure pass-through (read then write to
+    // the same slot, effectively zero delay).
+    void process(float inL, float inR, float& outL, float& outR, int delaySamples)
     {
-        outL = bufL[pos];
-        outR = bufR[pos];
-        bufL[pos] = inL;
-        bufR[pos] = inR;
-        if (++pos >= size) pos = 0;
+        // First write so that delaySamples==0 returns the current input.
+        bufL[writePos] = inL;
+        bufR[writePos] = inR;
+        int readPos = writePos - delaySamples;
+        if (readPos < 0) readPos += kMaxPdSamples;
+        outL = bufL[readPos];
+        outR = bufR[readPos];
+        if (++writePos >= kMaxPdSamples) writePos = 0;
     }
-
-    // size == 1 → pass-through without delay
 };
 
 // Small ER delay buffer (mono, used per-channel)
