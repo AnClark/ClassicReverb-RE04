@@ -18,6 +18,8 @@ ClassicReverbPlugin::ClassicReverbPlugin()
     fParams[kParamMix]      = 0.35f;
     fParams[kParamLevel]    = 0.0f;     // dB
 
+    // Call sampleRateChanged() to allocate buffers based on the initial sample rate.
+    // This ensures that the plugin is ready to process audio immediately after construction.
     sampleRateChanged(getSampleRate());
 }
 
@@ -111,7 +113,9 @@ void ClassicReverbPlugin::setParameterValue(uint32_t index, float value)
 // ── Audio processing ──────────────────────────────────────────────────
 void ClassicReverbPlugin::activate()
 {
-    sampleRateChanged(getSampleRate());
+    // NOTICE: No need to invoke sampleRateChanged() here to allocate buffers.
+    //         Hosts are expected to call sampleRateChanged() before processing and on sample rate changes.
+    //         If we invoked sampleRateChanged() here, we may hear a click on play start in hosts (for example, REAPER).
 }
 
 void ClassicReverbPlugin::sampleRateChanged(double newSampleRate)
