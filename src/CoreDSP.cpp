@@ -212,7 +212,7 @@ void ClassicReverbPlugin::updateCoefficients()
     fLevelGain = std::pow(10.0f, fParams[kParamLevel] / 20.0f);
 
     // ── Mix ────────────────────────────────────────────────────────
-    fMix = std::clamp(fParams[kParamMix], 0.0f, 1.0f);
+    fMix = std::clamp(fParams[kParamMix], 0.0f, 100.0f) * 0.01f;  // convert from percentage to 0.0-1.0
 
     // ── Early reflection gain ──────────────────────────────────────
     // param_cc = fParams[kParamEarlyRef].  Original stores dB gain.

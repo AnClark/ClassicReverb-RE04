@@ -15,7 +15,7 @@ ClassicReverbPlugin::ClassicReverbPlugin()
     fParams[kParamHiDamp]   = 30.0f;    // %
     fParams[kParamLoCut]    = 80.0f;    // Hz
     fParams[kParamEarlyRef] = -6.0f;    // dB
-    fParams[kParamMix]      = 0.35f;
+    fParams[kParamMix]      = 35.0f;    // %
     fParams[kParamLevel]    = 0.0f;     // dB
 
     // Call sampleRateChanged() to allocate buffers based on the initial sample rate.
@@ -27,8 +27,7 @@ ClassicReverbPlugin::ClassicReverbPlugin()
 void ClassicReverbPlugin::initParameter(uint32_t index, Parameter& param)
 {
     param.hints = kParameterIsAutomatable;
-    param.ranges.min = 0.0f;
-    param.ranges.max = 1.0f;
+    param.ranges = DISTRHO::ParameterRanges(kParamRanges[index]);
 
     switch (index)
     {
@@ -36,26 +35,18 @@ void ClassicReverbPlugin::initParameter(uint32_t index, Parameter& param)
         param.name = "Room Size";
         param.symbol = "room_size";
         param.unit  = "m^2";
-        param.ranges.min = 0.625f;
-        param.ranges.max = 640.0f;
         param.hints |= kParameterIsLogarithmic;
-        param.ranges.def = 80.0f;
         // Override: use actual physical unit
         break;
     case kParamDamping:
         param.name = "Damping";
         param.symbol = "damping";
         param.unit  = "%";
-        param.ranges.def = 40.0f;
-        param.ranges.max = 100.0f;
         break;
     case kParamPreDelay:
         param.name = "Pre-delay";
         param.symbol = "pre_delay";
         param.unit  = "ms";
-        param.ranges.min = -150.0f;
-        param.ranges.max =  150.0f;
-        param.ranges.def =  0.0f;
         break;
     case kParamHiDamp:
         param.name = "Hi-Damp.";
@@ -69,30 +60,20 @@ void ClassicReverbPlugin::initParameter(uint32_t index, Parameter& param)
         param.symbol = "lo_cut";
         param.unit  = "Hz";
         param.hints |= kParameterIsLogarithmic;
-        param.ranges.min = 20.0f;
-        param.ranges.max = 1000.0f;
-        param.ranges.def = 80.0f;
         break;
     case kParamEarlyRef:
         param.name = "Early Ref.";
         param.symbol = "early_ref";
         param.unit  = "dB";
-        param.ranges.min = -40.0f;
-        param.ranges.max =   6.0f;
-        param.ranges.def =  -6.0f;
         break;
     case kParamMix:
         param.name = "Mix";
         param.symbol = "mix";
-        param.ranges.def = 0.35f;
         break;
     case kParamLevel:
         param.name = "Level";
         param.symbol = "level";
         param.unit  = "dB";
-        param.ranges.min = -10.0f;
-        param.ranges.max =  10.0f;
-        param.ranges.def =   0.0f;
         break;
     }
 }
@@ -104,8 +85,8 @@ float ClassicReverbPlugin::getParameterValue(uint32_t index) const
 
 void ClassicReverbPlugin::setParameterValue(uint32_t index, float value)
 {
-    fParams[index] = std::clamp(value, getParameterRange(index).min,
-                                        getParameterRange(index).max);
+    fParams[index] = std::clamp(value, kParamRanges[index].min,
+                                        kParamRanges[index].max);
     updateCoefficients();
 }
 
