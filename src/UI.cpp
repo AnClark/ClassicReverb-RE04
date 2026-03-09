@@ -196,20 +196,22 @@ void ClassicReverbUI::onImGuiDisplay()
 
             ImGui::SameLine(0, 10);
 
-            if (_BeginSection("OUTPUT", 90.0f * 3))        
+            if (_BeginSection("OUTPUT", 80.0f * 3))        
             {
-                // NOTE: No need to add left margin in this section.
+                // Add an extra left margin
+                ImGui::Dummy(ImVec2(1, 0));
+                ImGui::SameLine();
   
                 _addKnob(kParamEarlyRef, "EARLY REF. (dB)", -40.0f, 6.0f, kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks),
                          false,   // isLogarithmic
                          true,    // use_pivot: knob centre = 0 dB
                          0.0f);   // pivot_value
 
-                ImGui::SameLine(0, 25);
+                ImGui::SameLine(0, 20);
 
                 _addKnob(kParamMix, "MIX", 0.0f, 100.0f, kMixMarks, IM_ARRAYSIZE(kMixMarks));
 
-                ImGui::SameLine(0, 25);
+                ImGui::SameLine(0, 30);
 
                 _addKnob(kParamLevel, "LEVEL", -10.0f, 10.0f, kLevelMarks, IM_ARRAYSIZE(kLevelMarks));
 
