@@ -98,6 +98,10 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
     if (isLogarithmic) flags |= ImGuiKnobFlags_Logarithmic;
     if (use_pivot)     flags |= ImGuiKnobFlags_Pivot;
 
+    // Knob color
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x2f + 70, 0x4d + 70, 0x44 + 70, 0xff));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x2f + 90, 0x4d + 90, 0x44 + 90, 0xff));
+
     if (ImGuiKnobs_Mod::Knob(label, &fParams[paramId], v_min, v_max, 0.0f, "%.1f", ImGuiKnobVariant_Tick, KNOB_SIZE, flags,
         DEFAULT_STEP, angle_min, angle_max,
         marks, mark_count, &kScaleMarkStyle, pivot_value))
@@ -112,6 +116,8 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
 
     if (ImGui::IsItemDeactivated())
         editParameter(paramId, false);
+
+    ImGui::PopStyleColor(2);
 }
 
 bool ClassicReverbUI::_BeginSection(const char* title, float width)
