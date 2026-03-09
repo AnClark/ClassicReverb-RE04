@@ -13,7 +13,8 @@ enum ImGuiKnobFlags_ {
     ImGuiKnobFlags_DragVertical = 1 << 4,
     ImGuiKnobFlags_Logarithmic = 1 << 5,
     ImGuiKnobFlags_AlwaysClamp = 1 << 6,
-    ImGuiKnobFlags_TitleBottom = 1 << 7  // Draw title below the knob instead of above
+    ImGuiKnobFlags_TitleBottom = 1 << 7, // Draw title below the knob instead of above
+    ImGuiKnobFlags_Pivot       = 1 << 8  // Bilinear mapping: center of travel = pivot_value
 };
 
 typedef int ImGuiKnobVariant;
@@ -86,7 +87,8 @@ namespace ImGuiKnobs_Mod {
             float angle_max = -1,
             const KnobScaleMark *marks = nullptr,
             int mark_count = 0,
-            const KnobScaleMarkStyle *mark_style = nullptr);
+            const KnobScaleMarkStyle *mark_style = nullptr,
+            float pivot_value = 0.0f);  // center of travel; only used with ImGuiKnobFlags_Pivot
     bool KnobInt(
             const char *label,
             int *p_value,
@@ -102,6 +104,7 @@ namespace ImGuiKnobs_Mod {
             float angle_max = -1,
             const KnobScaleMark *marks = nullptr,
             int mark_count = 0,
-            const KnobScaleMarkStyle *mark_style = nullptr);
+            const KnobScaleMarkStyle *mark_style = nullptr,
+            float pivot_value = 0.0f);
 
 }// namespace ImGuiKnobs

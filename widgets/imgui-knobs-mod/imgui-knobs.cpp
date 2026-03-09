@@ -31,6 +31,7 @@ namespace ImGuiKnobs_Mod {
             float angle;
             float angle_cos;
             float angle_sin;
+            float pivot_value; // bilinear pivot in value space (used when ImGuiKnobFlags_Pivot)
 
             knob(const char *_label,
                  ImGuiDataType data_type,
@@ -42,9 +43,22 @@ namespace ImGuiKnobs_Mod {
                  const char *format,
                  ImGuiKnobFlags flags,
                  float _angle_min,
-                 float _angle_max) {
-                radius = _radius;
-                if (flags & ImGuiKnobFlags_Logarithmic) {
+                 float _angle_max,
+                 float _pivot_value = 0.0f) {
+                radius      = _radius;
+                pivot_value = _pivot_value;
+                if (flags & ImGuiKnobFlags_Pivot) {
+                    // Bilinear mapping:
+                    //   [v_min,  pivot] → t ∈ [0.0, 0.5]  (spread over bottom half of travel)
+                    //   [pivot,  v_max] → t ∈ [0.5, 1.0]  (spread over top half of travel)
+                    // This makes the knob centre (t=0.5) correspond exactly to pivot_value.
+                    float v  = (float)ImMax(ImMin(*p_value, v_max), v_min);
+                    float lo = (float)v_min, hi = (float)v_max, pv = _pivot_value;
+                    if (v <= pv)
+                        t = (lo != pv) ? 0.5f * (v - lo) / (pv - lo) : 0.0f;
+                    else
+                        t = (pv != hi) ? 0.5f + 0.5f * (v - pv) / (hi - pv) : 1.0f;
+                } else if (flags & ImGuiKnobFlags_Logarithmic) {
                     float v = ImMax(ImMin(*p_value, v_max), v_min);
                     t = (ImLog(ImAbs(v)) - ImLog(ImAbs(v_min))) / (ImLog(ImAbs(v_max)) - ImLog(ImAbs(v_min)));
                 } else {
@@ -242,7 +256,14 @@ namespace ImGuiKnobs_Mod {
 
                     // Compute normalised position t in [0,1]
                     float t_mark;
-                    if (flags & ImGuiKnobFlags_Logarithmic) {
+                    if (flags & ImGuiKnobFlags_Pivot) {
+                        float v  = ImClamp(m.value, v_min_f, v_max_f);
+                        float pv = pivot_value;
+                        if (v <= pv)
+                            t_mark = (v_min_f != pv) ? 0.5f * (v - v_min_f) / (pv - v_min_f) : 0.0f;
+                        else
+                            t_mark = (pv != v_max_f) ? 0.5f + 0.5f * (v - pv) / (v_max_f - pv) : 1.0f;
+                    } else if (flags & ImGuiKnobFlags_Logarithmic) {
                         float v   = ImMax(ImMin(m.value, v_max_f), v_min_f);
                         float lv  = ImLog(v);
                         float lmn = ImLog(v_min_f);
@@ -291,7 +312,8 @@ namespace ImGuiKnobs_Mod {
                 ImGuiKnobFlags flags,
                 float angle_min,
                 float angle_max,
-                const KnobScaleMarkStyle *marks_pad_style = nullptr) {
+                const KnobScaleMarkStyle *marks_pad_style = nullptr,
+                float pivot_value = 0.0f) {
             if (flags & ImGuiKnobFlags_Logarithmic && v_min <= 0.0 && v_max >= 0.0) {
                 // we must handle the cornercase if a client specifies a logarithmic range that contains zero
                 // for this we clamp lower limit to avoid hitting zero like it is done in ImGui::SliderBehaviorT
@@ -302,7 +324,21 @@ namespace ImGuiKnobs_Mod {
                 *p_value = ImMax(ImMin(*p_value, v_max), v_min); // this ensures that in the cornercase p_value is within the range
             }
 
-            auto speed = _speed == 0 ? (v_max - v_min) / 250.f : _speed;
+            // For Pivot mapping the two halves have different value ranges but
+            // identical angular travel (each = half the total arc).  To keep the
+            // visual rotation speed uniform, speed must be proportional to the
+            // local dv/dt = 2*(range of current half) rather than the full v range.
+            float speed;
+            if (_speed != 0) {
+                speed = _speed;
+            } else if (flags & ImGuiKnobFlags_Pivot) {
+                float cv = (float)*p_value;
+                speed = cv <= pivot_value
+                      ? 2.0f * (pivot_value - (float)v_min) / 250.f
+                      : 2.0f * ((float)v_max - pivot_value) / 250.f;
+            } else {
+                speed = (v_max - v_min) / 250.f;
+            }
             ImGui::PushID(label);
 
 #if IMGUI_VERSION_NUM < 19197
@@ -359,7 +395,7 @@ namespace ImGuiKnobs_Mod {
             }
 
             // Draw knob
-            knob<DataType> k(label, data_type, p_value, v_min, v_max, speed, width * 0.5f, format, flags, angle_min, angle_max);
+            knob<DataType> k(label, data_type, p_value, v_min, v_max, speed, width * 0.5f, format, flags, angle_min, angle_max, pivot_value);
 
             // Draw title (bottom)
             if (!(flags & ImGuiKnobFlags_NoTitle) && (flags & ImGuiKnobFlags_TitleBottom)) {
@@ -452,7 +488,8 @@ namespace ImGuiKnobs_Mod {
             float angle_max,
             const KnobScaleMark *marks,
             int mark_count,
-            const KnobScaleMarkStyle *mark_style) {
+            const KnobScaleMarkStyle *mark_style,
+            float pivot_value = 0.0f) {
         // Use a default style instance as the padding reference when the caller
         // passes marks but no explicit style, so padding is still computed.
         static const KnobScaleMarkStyle s_default_mark_style;
@@ -473,7 +510,8 @@ namespace ImGuiKnobs_Mod {
                 flags,
                 angle_min,
                 angle_max,
-                pad_style);
+                pad_style,
+                pivot_value);
 
         // Scale marks — drawn FIRST so the knob shadow/body renders on top of them
         knob.draw_scale_marks(marks, mark_count, (float) v_min, (float) v_max, flags, mark_style);
@@ -563,7 +601,8 @@ namespace ImGuiKnobs_Mod {
             float angle_max,
             const KnobScaleMark *marks,
             int mark_count,
-            const KnobScaleMarkStyle *mark_style) {
+            const KnobScaleMarkStyle *mark_style,
+            float pivot_value) {
         return BaseKnob(
                 label,
                 ImGuiDataType_Float,
@@ -580,7 +619,8 @@ namespace ImGuiKnobs_Mod {
                 angle_max,
                 marks,
                 mark_count,
-                mark_style);
+                mark_style,
+                pivot_value);
     }
 
     bool KnobInt(
@@ -598,7 +638,8 @@ namespace ImGuiKnobs_Mod {
             float angle_max,
             const KnobScaleMark *marks,
             int mark_count,
-            const KnobScaleMarkStyle *mark_style) {
+            const KnobScaleMarkStyle *mark_style,
+            float pivot_value) {
         return BaseKnob(
                 label,
                 ImGuiDataType_S32,
@@ -615,6 +656,7 @@ namespace ImGuiKnobs_Mod {
                 angle_max,
                 marks,
                 mark_count,
-                mark_style);
+                mark_style,
+                pivot_value);
     }
 }// namespace ImGuiKnobs
