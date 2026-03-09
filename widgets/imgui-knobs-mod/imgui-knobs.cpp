@@ -293,6 +293,12 @@ namespace ImGuiKnobs_Mod {
                             center.x + ca * label_r - text_sz.x * 0.5f,
                             center.y + sa * label_r - text_sz.y * 0.5f
                         };
+
+                        // HACK: When the label is at the middle of the knob, apply a small nudge to let it display properly on the center 
+                        if (t_mark == 0.5f) {
+                            text_pos.x += 1.0f;
+                        }
+
                         draw_list->AddText(font, fs, text_pos, text_col, m.label);
                     }
                 }
