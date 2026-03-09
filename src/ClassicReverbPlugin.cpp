@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 ClassicReverbPlugin::ClassicReverbPlugin()
-    : DISTRHO::Plugin(kParamCount, 33, 0)
+    : DISTRHO::Plugin(kParamCount, 0, 0)
 {
     // Default parameter values – physical units matching initParameter() ranges
     fParams[kParamRoomSize] = 80.0f;    // m²
