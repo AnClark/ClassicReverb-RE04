@@ -61,9 +61,15 @@ static const ImGuiKnobs_Mod::KnobScaleMark kLoCutMarks[] = {
 };
 
 static const ImGuiKnobs_Mod::KnobScaleMark kEarlyRefMarks[] = {
-    {   -40.0f, "-∞" },
-    {   0.0f, "0" },
-    {   6.0f, "+6"  },
+    { -40.0f, "-\u221e" },   // -40 dB → displayed as -∞
+    { -30.0f, nullptr  },
+    { -20.0f, nullptr  },
+    { -10.0f, nullptr  },
+    {   0.0f,  "0"     },   // pivot: knob centre
+    {   1.5f,  nullptr },
+    {   3.0f,  nullptr },
+    {   4.5f,  nullptr },
+    {   6.0f,  "+6"    },
 };
 
 static const ImGuiKnobs_Mod::KnobScaleMark kMixMarks[] = {
@@ -194,7 +200,10 @@ void ClassicReverbUI::onImGuiDisplay()
             {
                 // NOTE: No need to add left margin in this section.
   
-                _addKnob(kParamEarlyRef, "EARLY REF. (dB)", -40.0f, 6.0f, kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks));
+                _addKnob(kParamEarlyRef, "EARLY REF. (dB)", -40.0f, 6.0f, kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks),
+                         false,   // isLogarithmic
+                         true,    // use_pivot: knob centre = 0 dB
+                         0.0f);   // pivot_value
 
                 ImGui::SameLine(0, 25);
 

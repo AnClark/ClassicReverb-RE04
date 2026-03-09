@@ -82,7 +82,7 @@ void ClassicReverbUI::_drawChassisBackground(float margin, float rounding)
     dl->AddRect(panelMin, panelMax, IM_COL32(0xff, 0xe0, 0xb8, 60), rounding, 0, 1.5f); // 1.5f * scale);
 }
 
-void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_min, float v_max, const ImGuiKnobs_Mod::KnobScaleMark *marks, uint32_t mark_count, bool isLogarithmic)
+void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_min, float v_max, const ImGuiKnobs_Mod::KnobScaleMark *marks, uint32_t mark_count, bool isLogarithmic, bool use_pivot, float pivot_value)
 {
     // This is a helper function to add a knob with given parameters.
     // It can be called from onImGuiDisplay() to reduce code duplication.
@@ -94,11 +94,13 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
     constexpr float angle_min = IMGUIKNOBS_PI * (130.0f / 180.0f);   // Down-left 40° (starting point)
     constexpr float angle_max = IMGUIKNOBS_PI * (410.0f / 180.0f);   // Down-right 40° (+360°)
 
-    const ImGuiKnobFlags flags = isLogarithmic ? (ImGuiKnobFlags_TitleBottom | ImGuiKnobFlags_Logarithmic) : (ImGuiKnobFlags_TitleBottom);
+    ImGuiKnobFlags flags = ImGuiKnobFlags_TitleBottom;
+    if (isLogarithmic) flags |= ImGuiKnobFlags_Logarithmic;
+    if (use_pivot)     flags |= ImGuiKnobFlags_Pivot;
 
     if (ImGuiKnobs_Mod::Knob(label, &fParams[paramId], v_min, v_max, 0.0f, "%.1f", ImGuiKnobVariant_Tick, KNOB_SIZE, flags,
         DEFAULT_STEP, angle_min, angle_max,
-        marks, mark_count, &kScaleMarkStyle))
+        marks, mark_count, &kScaleMarkStyle, pivot_value))
     {
         if (ImGui::IsItemActivated())
         {
