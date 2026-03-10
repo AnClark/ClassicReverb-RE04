@@ -262,12 +262,14 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
         DEFAULT_STEP, angle_min, angle_max,
         marks, mark_count, &kScaleMarkStyle, pivot_value))
     {
-        if (ImGui::IsItemActivated())
-        {
-            editParameter(paramId, true);
-            // TODO: Double-click to reset to default value
-        }
         setParameterValue(paramId, fParams[paramId]);
+    }
+
+    // NOTE: Putting ImGui::IsItemActivated() in ImGuiKnobs_Mod::Knob() will cause IsItemActivated() unavailable.
+    if (ImGui::IsItemActivated())
+    {
+        editParameter(paramId, true);
+        // TODO: Double-click to reset to default value
     }
 
     if (ImGui::IsItemDeactivated())
