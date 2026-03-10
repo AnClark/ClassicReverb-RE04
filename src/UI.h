@@ -39,6 +39,9 @@ private:
 
     void _loadFonts();  // Load ImGui fonts (invoked in constructor)
     void _drawChassisBackground(float margin, float rounding); // Draw the background of the plugin chassis (called from onImGuiDisplay)
+    void _drawKjaerhusLogo(const ImVec2& size);
+    void _drawPluginName();
+
     void _addKnob(Parameters paramId, const char* label, float v_min, float v_max, const ImGuiKnobs_Mod::KnobScaleMark *marks, uint32_t mark_count, bool isLogarithmic = false, bool use_pivot = false, float pivot_value = 0.0f); // Helper function to add a knob with given parameters (called from onImGuiDisplay)
 
     bool _BeginSection(const char* title, float width); // Helper function to begin a new section with a centered title.

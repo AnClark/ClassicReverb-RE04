@@ -218,6 +218,24 @@ void ClassicReverbUI::onImGuiDisplay()
                 _EndSection();
             }
 
+            ImGui::SameLine(0, 2);
+
+            // Right panel (Logo, config buttons, etc.)
+            {
+                ImGui::BeginGroup();
+
+                // Add an extra top margin
+                ImGui::Dummy(ImVec2(0, 2));
+
+                _drawKjaerhusLogo(ImVec2(100, 50));
+
+                ImGui::Dummy(ImVec2(0,23));     // TODO: This is a placeholder. I will add extra controls here in future.
+
+                _drawPluginName();
+
+                ImGui::EndGroup();
+            }
+
         }
         ImGui::EndChild();
 
