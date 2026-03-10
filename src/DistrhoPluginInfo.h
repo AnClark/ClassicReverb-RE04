@@ -1,8 +1,8 @@
 #pragma once
 
-#define DISTRHO_PLUGIN_NAME    "Classic Reverb RE-04"
-#define DISTRHO_PLUGIN_URI     "urn:classic-reverb:1"
-#define DISTRHO_PLUGIN_BRAND   "Kjaerhus Audio, AnClark Liu"
+#define DISTRHO_PLUGIN_NAME    "Classic Reverb RE-04 | Kjaerhus Classic Reverb Clone"
+#define DISTRHO_PLUGIN_URI     "https://github.com/AnClark/ClassicReverb-RE04"
+#define DISTRHO_PLUGIN_BRAND   "AnClark Liu"
 #define DISTRHO_PLUGIN_CLAP_ID "studio.anclark.classic.reverb.re04"
 
 #define DISTRHO_PLUGIN_NUM_INPUTS   2
