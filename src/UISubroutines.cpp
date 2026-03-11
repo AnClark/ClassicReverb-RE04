@@ -6,6 +6,7 @@
 
 #include "../fonts/LiberationSans-Regular.hpp"
 #include "../fonts/CormorantFont.hpp"
+#include "src/Resources.hpp"    // For Dejavu Sans font (bundled with DGL)
 
 ImGuiKnobs_Mod::KnobScaleMarkStyle kScaleMarkStyle = {
     .outer_radius = 1.20f,
@@ -17,8 +18,9 @@ void ClassicReverbUI::_loadFonts()
 {
     // Font sizes:
     // - Section title text:                   14px
-    // - Regular text:                         12.5px (e.g. Knob labels)
+    // - Chassis Regular text:                 12.5px (e.g. Knob labels)
     // - Larger text size:                     20px (e.g. Knob scale marks, down-sampled to 12.5px for better rendering quality)
+    // - ImGui UI text size:                   14.5px (e.g. tooltip text, menu text)
 
     ImGuiIO& io(ImGui::GetIO());
 
@@ -30,8 +32,10 @@ void ClassicReverbUI::_loadFonts()
 
     io.Fonts->Clear();
 
-    // ↓ Font #0: Regular text (e.g. Knob labels)
-    io.Fonts->AddFontFromMemoryCompressedTTF((void*)LiberationSansTTF_Compressed_compressed_data, LiberationSansTTF_Compressed_compressed_size, 12.5f * getScaleFactor(), &fc);
+    // ↓ Font #0: Chassis regular text (e.g. Knob labels)
+    //            Only load basic Latin glyphs for the chassis font to reduce atlas size, since most chassis text is simple alphanumeric characters.
+    static constexpr ImWchar kChassisRanges[] = { ' ', '~', 178, 178 + 1, 0 }; // Basic Latin range. 178 = '²'
+    io.Fonts->AddFontFromMemoryCompressedTTF((void*)LiberationSansTTF_Compressed_compressed_data, LiberationSansTTF_Compressed_compressed_size, 12.5f * getScaleFactor(), &fc, kChassisRanges);
 
     // ↓ Font #1: Larger text size for section titles (e.g. "REVERBERATION")
     //            Only load uppercase glyphs for the title font to reduce atlas size, since section titles are always uppercase.
@@ -46,11 +50,14 @@ void ClassicReverbUI::_loadFonts()
 
     // ↓ Font #3: Semi-BoldItalic Cormorant font for drawing "Classic Reverb" logo text
     //            Only load essential charset.
-    static constexpr ImWchar kPluginNameRanges[] = { 'A', 'Z', 'a', 'z', '0', '9' };
-    io.Fonts->AddFontFromMemoryCompressedTTF((void*)CormorantSemiBoldItalicTTF_compressed_data, CormorantSemiBoldItalicTTF_compressed_size, 20.0f * getScaleFactor(), &fc, kScaleMarkRanges);
+    static constexpr ImWchar kPluginNameRanges[] = { 'A', 'Z', 'a', 'z', '0', '9', ' ', ' ' + 1, 0 };
+    io.Fonts->AddFontFromMemoryCompressedTTF((void*)CormorantSemiBoldItalicTTF_compressed_data, CormorantSemiBoldItalicTTF_compressed_size, 20.0f * getScaleFactor(), &fc, kPluginNameRanges);
+
+    // ↓ Font #4: Dejavu Sans for ImGui menu and tooltip text (not used in the chassis board, so we can load a full charset)
+    io.Fonts->AddFontFromMemoryTTF((void*)dpf_resources::dejavusans_ttf, dpf_resources::dejavusans_ttf_size, 14.5f * getScaleFactor(), &fc);
 
     io.Fonts->Build();
-    io.FontDefault = io.Fonts->Fonts[0];
+    io.FontDefault = io.Fonts->Fonts[4];
 
     // Specify a larger font for the scale marks to improve rendering quality.
     // The Knob widget will down-sample it to the specified font size (12.5px) to achieve better visual quality.
@@ -149,9 +156,10 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
                             "KJÆRHUS AUDIO", 0.65f, 1.0f);
     
     //
-    // Draw inform text ("Open Source Recreation") with a semi-transparent rounded-rect background.
+    // Draw inform text ("Open Source Recreation / Recrated by AnClark") with a semi-transparent rounded-rect background.
     //
     {
+        const char* info_text = "Recreated by AnClark";
         constexpr float kOSR_FontSz   = 16.0f;
         constexpr float kOSR_ScaleX   = 0.8f;
         constexpr float kOSR_ScaleY   = 0.8f;
@@ -162,7 +170,7 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
 
         ImFont*        osr_font  = ImGui::GetIO().Fonts->Fonts[2];
         const ImVec2   text_pos  = ImVec2(pos.x + 10.0f, pos.y + 8.0f + 22.0f);
-        const ImVec2   raw_sz    = osr_font->CalcTextSizeA(kOSR_FontSz, FLT_MAX, 0.0f, "Open Source Recreation");
+        const ImVec2   raw_sz    = osr_font->CalcTextSizeA(kOSR_FontSz, FLT_MAX, 0.0f, info_text);
         const ImVec2   text_sz   = ImVec2(raw_sz.x * kOSR_ScaleX, raw_sz.y * kOSR_ScaleY);
 
         draw_list->AddRectFilled(
@@ -172,9 +180,8 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
 
         ImGuiExt::AddTextScaled(draw_list, osr_font, kOSR_FontSz,
                                 text_pos, IM_COL32(255, 255, 255, 255),
-                                "Open Source Recreation", kOSR_ScaleX, kOSR_ScaleY);
+                                info_text, kOSR_ScaleX, kOSR_ScaleY);
     }
-
 }
 
 void ClassicReverbUI::_drawPluginName()
@@ -232,7 +239,13 @@ void ClassicReverbUI::_drawPluginName()
         dl->AddText(font, kFontSz, ImVec2(mid.x + kPadX, p0.y + kPadY), IM_COL32(0, 0, 0, 255), "04");
 
         // Reserve layout space so ImGui accounts for the drawn area
-        ImGui::Dummy(ImVec2(lw + rw, height));
+        //ImGui::Dummy(ImVec2(lw + rw, height));
+        ImGui::InvisibleButton("##Extra_Info", ImVec2(lw + rw, height));
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal | ImGuiHoveredFlags_NoSharedDelay))
+        {
+            ImGui::SetTooltip("\"RE\" stands for Reverse Engineering. Different models of Classic Reverb RE have different timbre.\n"
+                "Classic Reverb RE is an open source recreation of the original Kjaerhus Classic Reverb.");
+        }
     }
 
     ImGui::EndGroup();
@@ -258,6 +271,9 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x2f + 70, 0x4d + 70, 0x44 + 70, 0xff));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x2f + 90, 0x4d + 90, 0x44 + 90, 0xff));
 
+    // Now default font is Droid Sans, so we need to push the chassis font for the knob label and scale marks.
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+
     if (ImGuiKnobs_Mod::Knob(label, &fParams[paramId], v_min, v_max, 0.0f, "%.1f", ImGuiKnobVariant_Tick, KNOB_SIZE, flags,
         DEFAULT_STEP, angle_min, angle_max,
         marks, mark_count, &kScaleMarkStyle, pivot_value))
@@ -275,6 +291,7 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
     if (ImGui::IsItemDeactivated())
         editParameter(paramId, false);
 
+    ImGui::PopFont();        
     ImGui::PopStyleColor(2);
 }
 
