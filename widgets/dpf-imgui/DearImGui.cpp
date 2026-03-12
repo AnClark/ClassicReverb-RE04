@@ -29,9 +29,12 @@
 # define IMGUI_IMPL_OPENGL_ES2
 #elif defined(DGL_USE_GLES3)
 # define IMGUI_IMPL_OPENGL_ES3
-#elif defined(DGL_USE_OPENGL3)
-# define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
+// NOTE: For DGL_USE_OPENGL3 (desktop OpenGL3), do NOT define IMGUI_IMPL_OPENGL_LOADER_CUSTOM.
+// On Windows, <GL/gl.h> only exposes OpenGL 1.1; GL 2.0+ functions (glCreateShader, etc.)
+// must be loaded at runtime via wglGetProcAddress. imgui_impl_opengl3_loader.h (gl3w) handles
+// this automatically. Defining IMGUI_IMPL_OPENGL_LOADER_CUSTOM skips that loader, causing
+// "was not declared in this scope" errors for all GL 2.0+ symbols.
 
 #ifndef IMGUI_SKIP_IMPLEMENTATION
 # define IMGUI_DPF_BACKEND
