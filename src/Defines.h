@@ -63,4 +63,13 @@ static constexpr float kApDelay[3] = { 0.000200f, 0.000252f, 0.000317f };
 // linear mapping from the disassembly.
 #define CLASSIC_REVERB_IMPROVED_DAMPING_CURVE 1
 
+// Set to 1 to restrict the Hi-Damp low-pass cutoff to a 2-decade range
+// (200 Hz – 20 kHz) instead of 3 decades (20 Hz – 20 kHz).
+// The original 3-decade range saturates around d=75 %: once fc < ~200 Hz
+// the HF energy is already fully suppressed within the first few comb
+// reflections, making the upper quarter of the knob perceptually inert.
+// Narrowing to 2 decades keeps the full knob range audibly useful.
+// Set to 0 to restore the unconstrained (20 Hz floor) behaviour.
+#define CLASSIC_REVERB_IMPROVED_HIDAMP_RANGE 1
+
 #endif // CLASSIC_REVERB_DEFINES_H_INCLUDED

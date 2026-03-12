@@ -223,7 +223,17 @@ void ClassicReverbPlugin::updateCoefficients()
         // Revised simpler formula matching original:
         // At hiDampNorm=0: fHiDampA=1, fHiDampB=0 (bypass)
         // At hiDampNorm=1: small fHiDampA → aggressive LP
+#if CLASSIC_REVERB_IMPROVED_HIDAMP_RANGE
+        // 2-decade range: fc sweeps 20000 Hz → 200 Hz (log(100) ≈ 4.605).
+        // Rationale: below ~200 Hz the LP already eliminates all HF content
+        // within the first few comb reflections; extending to 20 Hz only
+        // continues to mute an already-silent band, making the upper quarter
+        // of the knob travel perceptually inert.
+        float fc = 20000.0f * std::exp(-hiDampNorm * std::log(100.0f));
+#else
+        // Original 3-decade range: fc sweeps 20000 Hz → 20 Hz.
         float fc = 20000.0f * std::exp(-hiDampNorm * std::log(1000.0f));
+#endif
         fc = std::clamp(fc, 20.0f, fSampleRate * 0.499f);
         float omg = 2.0f * (float)M_PI * fc / fSampleRate;
         float sinO = std::sin(omg);
