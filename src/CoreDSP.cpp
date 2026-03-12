@@ -158,7 +158,35 @@ void ClassicReverbPlugin::updateCoefficients()
     //   dampingNorm=1 (full damping) → coeff=0.40 → short tail ✓
     // Room Size only affects the comb delay *lengths*, not the feedback gain.
     const float dampingNorm = std::clamp(fParams[kParamDamping] / 100.0f, 0.0f, 1.0f);
-    fRoomCoeff   = kDampingCoeffB + kDampingCoeffA * (1.0f - dampingNorm);
+
+#if CLASSIC_REVERB_IMPROVED_DAMPING_CURVE
+    // Perceptually uniform (log-log) mapping.
+    //
+    // The previous linear formula  g = kDampingCoeffB + kDampingCoeffA*(1-d)
+    // and even the geometric-g formula  g = g_max*(g_min/g_max)^d  both suffer
+    // from the same problem: RT60 ∝ 1/(-log₁₀(g)) is dominated by the range
+    // near g→1, so 0–30 % of the knob covers most of the perceptible change.
+    //
+    // For truly uniform perception every equal knob step should multiply RT60
+    // by the same factor (geometric sequence in RT60).  With C(d) = -log₁₀(g(d)):
+    //
+    //   RT60(d) ∝ 1/C(d)  →  for geometric RT60: C(d) = α · (β/α)^d
+    //   ⟹  g(d) = 10^{ −α · (β/α)^d }
+    //
+    // where α = -log₁₀(g_max)  and  β = -log₁₀(g_min).
+    // Each Δd = 0.25 interval multiplies RT60 by the same factor ≈ 2.60.
+    {
+        const float g_max = kDampingCoeffB + kDampingCoeffA;  // 0.98
+        const float g_min = kDampingCoeffB;                   // 0.40
+        const float alpha = -std::log10(g_max);               // ≈ 0.00877
+        const float ratio = -std::log10(g_min) / alpha;       // ≈ 45.37
+        fRoomCoeff = std::pow(10.0f, -alpha * std::pow(ratio, dampingNorm));
+    }
+#else
+    // Original linear mapping from the disassembly.
+    fRoomCoeff = kDampingCoeffB + kDampingCoeffA * (1.0f - dampingNorm);
+#endif
+
     fRoomCoeffSq = std::sqrt(std::max(0.0f, 1.0f - fRoomCoeff));  // normalisation factor
 
     // ── Frequency damping (hi-damp) ────────────────────────────────
