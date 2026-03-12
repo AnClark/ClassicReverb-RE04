@@ -39,22 +39,6 @@ private:
         return delayed - g * w;
     }
 
-    // ── Parameter range helper ────────────────────────────────────────────
-    struct Range { float min, max; };
-    Range getParameterRange(uint32_t index) const
-    {
-        switch (index) {
-        case kParamRoomSize: return { 0.625f,  640.0f  };
-        case kParamDamping:  return { 0.0f,    100.0f  };
-        case kParamPreDelay: return { -150.0f, 150.0f  };
-        case kParamHiDamp:   return { 0.0f,    100.0f  };
-        case kParamLoCut:    return { 20.0f,   1000.0f };
-        case kParamEarlyRef: return { -40.0f,  6.0f    };
-        case kParamMix:      return { 0.0f,    1.0f    };
-        case kParamLevel:    return { -10.0f,  10.0f   };
-        default:             return { 0.0f,    1.0f    };
-        }
-    }
 
     // Normalise room-size m² → 0–1 (VST normalised form used by original plugin)
     static float roomSizeToNorm(float sqm)

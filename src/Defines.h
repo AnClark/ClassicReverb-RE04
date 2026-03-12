@@ -54,4 +54,13 @@ static constexpr float kCombMixR[16] = {
 // Allpass filter base delays (seconds) – from 0x00488d68
 static constexpr float kApDelay[3] = { 0.000200f, 0.000252f, 0.000317f };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature flags
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Set to 1 to use the perceptually uniform Damping curve (RT60 evenly
+// distributed across the knob range).  Set to 0 to restore the original
+// linear mapping from the disassembly.
+#define CLASSIC_REVERB_IMPROVED_DAMPING_CURVE 1
+
 #endif // CLASSIC_REVERB_DEFINES_H_INCLUDED

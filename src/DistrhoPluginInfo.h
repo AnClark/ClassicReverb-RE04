@@ -1,16 +1,22 @@
 #pragma once
 
-#define DISTRHO_PLUGIN_NAME    "Classic Reverb RE-04"
-#define DISTRHO_PLUGIN_URI     "urn:classic-reverb:1"
-#define DISTRHO_PLUGIN_BRAND   "Classic Reverb"
-#define DISTRHO_PLUGIN_CLAP_ID "classic-reverb.reverb.1"
+#define DISTRHO_PLUGIN_NAME    "Classic Reverb RE-04 | Kjaerhus Classic Reverb Clone"
+#define DISTRHO_PLUGIN_URI     "https://github.com/AnClark/ClassicReverb-RE04"
+#define DISTRHO_PLUGIN_BRAND   "AnClark Liu"
+#define DISTRHO_PLUGIN_CLAP_ID "studio.anclark.classic.reverb.re04"
 
 #define DISTRHO_PLUGIN_NUM_INPUTS   2
 #define DISTRHO_PLUGIN_NUM_OUTPUTS  2
 #define DISTRHO_PLUGIN_IS_RT_SAFE   1
 #define DISTRHO_PLUGIN_WANT_TIMEPOS 0
 
-#define DISTRHO_PLUGIN_HAS_UI          0
+#define DISTRHO_PLUGIN_HAS_UI          1
+#define DISTRHO_UI_USE_CUSTOM           1
+#define DISTRHO_UI_CUSTOM_INCLUDE_PATH  "DearImGui.hpp"
+#define DISTRHO_UI_CUSTOM_WIDGET_TYPE   DGL_NAMESPACE::ImGuiTopLevelWidget
+#define DISTRHO_UI_DEFAULT_WIDTH         750 + 135  // Base width + right panel width
+#define DISTRHO_UI_DEFAULT_HEIGHT        120
+
 #define DISTRHO_PLUGIN_IS_SYNTH        0
 
 //#define DISTRHO_PLUGIN_WANT_PROGRAMS   1

@@ -18,16 +18,28 @@ add_subdirectory("${DPF_ROOT}" dpf EXCLUDE_FROM_ALL)
 # Plugin targets
 # ─────────────────────────────────────────────────────────────────────────────
 dpf_add_plugin(ClassicReverb
-    TARGETS     vst2 vst3 clap
+    TARGETS     vst2 vst3 clap jack
     FILES_DSP
         src/ClassicReverbPlugin.cpp
         src/CoreDSP.cpp
-    # No UI — headless plugin
+    FILES_UI
+        src/UI.cpp
+        src/UISubroutines.cpp
+        widgets/dpf-imgui/DearImGui.cpp
+        widgets/imgui-knobs-mod/imgui-knobs.cpp
+    NO_SHARED_RESOURCES
 )
 
 # DistrhoPluginInfo.h must be findable by the DPF internal headers
 # DPF adds <dpf>/distrho to the include path, but not the project source dir.
-target_include_directories(ClassicReverb PUBLIC src)
+target_include_directories(ClassicReverb PUBLIC
+    src
+    widgets/dpf-widgets
+    widgets/dpf-imgui
+    widgets/dpf-imgui/DearImGui
+    widgets/imgui-knobs-mod
+    widgets/imgui-ext
+)
 
 # Ensure C++17 (needed for std::clamp etc.)
 target_compile_features(ClassicReverb PUBLIC cxx_std_17)

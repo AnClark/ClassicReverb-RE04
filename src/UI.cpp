@@ -1,0 +1,260 @@
+#include "UI.h"
+
+#include "CenteredSeparatorText.hpp"
+#include "imgui-knobs.h"
+
+// -----------------------------------------------------------------------
+// Configurations
+
+static const ImGuiKnobs_Mod::KnobScaleMark kSizeMarks[] = {
+    {   0.625f, "0.625" },
+    {   1.25f,  "1.25"  },
+    {   2.5f,   "2.5"   },
+    {   5.0f,   "5"     },
+    {  10.0f,   "10"    },
+    {  20.0f,   "20"    },
+    {  40.0f,   "40"    },
+    {  80.0f,   "80"    },
+    { 160.0f,   "160"   },
+    { 320.0f,   "320"   },
+    { 640.0f,   "640"   },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kDampingMarks[] = {
+    {   0.0f, "MIN" },
+    {   12.5f, nullptr },
+    {   25.0f, nullptr },
+    {   37.5f, nullptr },
+    {   50.0f, nullptr },
+    {   62.5f, nullptr },
+    {   75.0f, nullptr },
+    {   87.5f, nullptr },
+    {  100.0f, "MAX" },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kPreDelayMarks[] = {
+    { -150.0f, "-150" },
+    { -120.0f, "-120" },
+    {  -90.0f, "-90"  },
+    {  -60.0f, "-60"  },
+    {  -30.0f, "-30"  },
+    {    0.0f, "0"    },
+    {   30.0f, "30"   },
+    {   60.0f, "60"   },
+    {   90.0f, "90"   },
+    {  120.0f, "120" },
+    {  150.0f, "150" },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kLoCutMarks[] = {
+    { 20.0f, "20" },
+    { 30.0f, "30" },
+    {  44.0f, "44"  },
+    {  65.0f, "65"  },
+    {  96.0f, "96"  },
+    {  141.0f, "141" },
+    {  209.0f, "209"   },
+    {  309.0f, "309"   },
+    {  457.0f, "457"   },
+    {  676.0f, "676"   },
+    { 1000.0f, "1k"  },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kEarlyRefMarks[] = {
+    { -40.0f, "-\u221e" },   // -40 dB → displayed as -∞
+    { -30.0f, nullptr  },
+    { -20.0f, nullptr  },
+    { -10.0f, nullptr  },
+    {   0.0f,  "0"     },   // pivot: knob centre
+    {   1.5f,  nullptr },
+    {   3.0f,  nullptr },
+    {   4.5f,  nullptr },
+    {   6.0f,  "+6"    },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kMixMarks[] = {
+    {   0.0f, "DIR." },
+    {   12.5f, nullptr },
+    {   25.0f, nullptr },
+    {   37.5f, nullptr },
+    {   50.0f, "1:1" },
+    {   62.5f, nullptr },
+    {   75.0f, nullptr },
+    {   87.5f, nullptr },
+    {  100.0f, "EFF." },
+};
+
+static const ImGuiKnobs_Mod::KnobScaleMark kLevelMarks[] = {
+    {  -10.0f, "-10" },
+    {  -7.5f, nullptr },
+    {   -5.0f, nullptr },
+    {   -2.5f, nullptr },
+    {    0.0f, "0"   },
+    { 2.5f, nullptr },
+    {   5.0f, nullptr },
+    {   7.5f, nullptr },
+    {  10.0f, "10"  },
+};
+
+// -----------------------------------------------------------------------
+// Constructor and UI callbacks
+
+ClassicReverbUI::ClassicReverbUI()
+    : DISTRHO::UI(DISTRHO_UI_DEFAULT_WIDTH, DISTRHO_UI_DEFAULT_HEIGHT, true)
+{
+    // Initialize parameters to default values (optional)
+    std::memset(fParams, 0, sizeof(fParams));
+
+    // Load fonts for ImGui
+    _loadFonts();
+}
+
+void ClassicReverbUI::parameterChanged(uint32_t index, float value)
+{
+    DISTRHO_SAFE_ASSERT_RETURN(index < kParamCount, )
+
+    fParams[index] = value;
+}
+
+void ClassicReverbUI::onImGuiDisplay()
+{
+    //const float scale   = getScaleFactor();
+    const float margin  = 4.0f; //* scale;
+
+    // ── Main viewport (fullscreen, no decoration) ────────────────────────────
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+
+    static constexpr auto window_flags =
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_NoMove       |
+        ImGuiWindowFlags_NoSavedSettings;
+
+    // White background for the host window
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    if (ImGui::Begin("Main Window", nullptr, window_flags))
+    {
+        const float  rounding = 10.0f; //* scale;
+        const ImVec2 winSize = ImGui::GetWindowSize();
+
+        // ── Draw the plugin chassis background directly onto the main viewport ──
+        _drawChassisBackground(margin, rounding);
+
+        // ── Child window (transparent overlay for placing controls) ──────────
+        ImGui::SetCursorPos(ImVec2(margin, margin));
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+
+        const ImVec2 childSize = ImVec2(winSize.x - 2.0f * margin, winSize.y - 2.0f * margin);
+        if (ImGui::BeginChild("BackgroundPanel", childSize, false,
+                              ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse))
+        {
+            // ── UI controls will go here ─────────────────────────────────────
+            
+            // Left margin
+            ImGui::Dummy(ImVec2(2, 0));
+            ImGui::SameLine();
+
+            if (_BeginSection("REVERBERATION", 90.0f * 3))        
+            {
+                // Add an extra left margin to the first knob so its leftmost scale mark doesn't get cut off.
+                ImGui::Dummy(ImVec2(12, 0));
+                ImGui::SameLine();
+
+                _addKnob(kParamRoomSize, "SIZE (m²)", 0.625f, 640.0f, kSizeMarks, IM_ARRAYSIZE(kSizeMarks), true);
+
+                ImGui::SameLine(0, 35);
+
+                _addKnob(kParamDamping, "DAMPING", 0.0f, 100.0f, kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
+
+                ImGui::SameLine(0, 35);
+
+                _addKnob(kParamPreDelay, "PREDELAY (ms)", -150.0f, 150.0f, kPreDelayMarks, IM_ARRAYSIZE(kPreDelayMarks), false);
+
+                _EndSection();              
+            }
+
+            ImGui::SameLine(0, 10);
+
+            if (_BeginSection("FILTERS", 90.0f * 2))
+            {
+                // Add an extra left margin
+                ImGui::Dummy(ImVec2(2, 0));
+                ImGui::SameLine();
+
+                _addKnob(kParamHiDamp, "HI DAMP.", 0.0f, 100.0f, kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
+
+                ImGui::SameLine(0, 35);
+
+                _addKnob(kParamLoCut, "LO CUT (Hz)", 20.0f, 1000.0f, kLoCutMarks, IM_ARRAYSIZE(kLoCutMarks), true);
+
+                _EndSection();
+            }
+
+            ImGui::SameLine(0, 10);
+
+            if (_BeginSection("OUTPUT", 80.0f * 3))        
+            {
+                // Add an extra left margin
+                ImGui::Dummy(ImVec2(1, 0));
+                ImGui::SameLine();
+  
+                _addKnob(kParamEarlyRef, "EARLY REF. (dB)", -40.0f, 6.0f, kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks),
+                         false,   // isLogarithmic
+                         true,    // use_pivot: knob centre = 0 dB
+                         0.0f);   // pivot_value
+
+                ImGui::SameLine(0, 20);
+
+                _addKnob(kParamMix, "MIX", 0.0f, 100.0f, kMixMarks, IM_ARRAYSIZE(kMixMarks));
+
+                ImGui::SameLine(0, 30);
+
+                _addKnob(kParamLevel, "LEVEL", -10.0f, 10.0f, kLevelMarks, IM_ARRAYSIZE(kLevelMarks));
+
+                _EndSection();
+            }
+
+            ImGui::SameLine(0, 2);
+
+            // Right panel (Logo, config buttons, etc.)
+            {
+                ImGui::BeginGroup();
+
+                // Add an extra top margin
+                ImGui::Dummy(ImVec2(0, 2));
+
+                _drawKjaerhusLogo(ImVec2(100, 50));
+
+                ImGui::Dummy(ImVec2(0,23));     // TODO: This is a placeholder. I will add extra controls here in future.
+
+                _drawPluginName();
+
+                ImGui::EndGroup();
+            }
+
+        }
+        ImGui::EndChild();
+
+        ImGui::PopStyleVar();   // ChildRounding
+        ImGui::PopStyleColor(); // ChildBg
+
+        ImGui::End();
+    }
+    ImGui::PopStyleColor(); // WindowBg
+}
+
+// -----------------------------------------------------------------------
+
+START_NAMESPACE_DISTRHO
+
+UI* createUI()
+{
+    return new ClassicReverbUI();
+}
+
+END_NAMESPACE_DISTRHO
+
