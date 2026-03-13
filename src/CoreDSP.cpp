@@ -88,8 +88,17 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         float wetL = reverbL;
         float wetR = reverbR;
         float mix  = fMix;
-        outL[i] = ((1.0f - mix) * dryL + mix * wetL) * fLevelGain;
-        outR[i] = ((1.0f - mix) * dryR + mix * wetR) * fLevelGain;
+        float rawL = ((1.0f - mix) * dryL + mix * wetL) * fLevelGain;
+        float rawR = ((1.0f - mix) * dryR + mix * wetR) * fLevelGain;
+#if CLASSIC_REVERB_OUTPUT_SOFT_CLIP
+        // tanh soft clip: y = C * tanh(x / C)
+        // Unity slope at x=0; knee ~0 dBFS; ceiling ±kSoftClipCeiling.
+        outL[i] = kSoftClipCeiling * std::tanh(rawL * kSoftClipCeilingInv);
+        outR[i] = kSoftClipCeiling * std::tanh(rawR * kSoftClipCeilingInv);
+#else
+        outL[i] = rawL;
+        outR[i] = rawR;
+#endif
     }
 }
 
