@@ -67,8 +67,9 @@ private:
     PreDelayBuf fPreDelay;
     int         fPreDelaySamples = 0;  // current read-offset in samples
 
-    // Early reflections
-    ErBuf fErBuf;
+    // Early reflections (stereo buffers, matching the original DLL)
+    ErBuf fErBufL;
+    ErBuf fErBufR;
     int   fErDelayLen[7];
 
     // Allpass diffusion

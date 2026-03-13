@@ -22,16 +22,18 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         float pdL, pdR;
         fPreDelay.process(dryL, dryR, pdL, pdR, fPreDelaySamples);
 
-        // ────── Early reflections (7-tap) ────────────────────────────
-        fErBuf.write(pdL + pdR);   // mono sum into ER buffer
+        // ────── Early reflections (7-tap, stereo) ───────────────────────
+        // Original DLL stores L and R separately (offset+0xf4 / offset+0xf8),
+        // giving true stereo early reflections rather than a mono sum.
+        fErBufL.write(pdL);
+        fErBufR.write(pdR);
 
         float erL = 0.0f, erR = 0.0f;
         for (int t = 0; t < 7; ++t)
         {
             int d = fErDelayLen[t];
-            float tap = fErBuf.read(d);
-            erL += tap * kErGain[t];
-            erR += tap * kErGain[t];
+            erL += fErBufL.read(d) * kErGain[t];
+            erR += fErBufR.read(d) * kErGain[t];
         }
         // Apply early-ref gain (parameter-controlled)
         erL *= fEarlyRefGain;
