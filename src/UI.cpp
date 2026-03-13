@@ -3,6 +3,8 @@
 #include "CenteredSeparatorText.hpp"
 #include "imgui-knobs.h"
 
+#include "config.h"
+
 // -----------------------------------------------------------------------
 // Configurations
 
@@ -269,7 +271,12 @@ void ClassicReverbUI::onImGuiDisplay()
                 ImGui::SetColumnWidth(1, 420.0f);
 
                 {
-                    ImGui::SeparatorText("Classic Reverb RE-04");
+                    const String versionStr = String("Classic Reverb RE-04") + "  |  Version " +
+                                        String(VERSION_MAJOR) + "." +
+                                        String(VERSION_MINOR) + "." +
+                                        String(VERSION_PATCH);
+
+                    ImGui::SeparatorText(versionStr);
                     ImGui::Text("Reverse engineering of Kjaerhus Audio Classic Reverb (2003).");
                     ImGui::Text("Original algorithm by Kjaerhus Audio.");
                     ImGui::Text("Copyright (c) 2026 AnClark Liu <clarklaw4701@qq.com>");

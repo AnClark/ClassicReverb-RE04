@@ -39,10 +39,14 @@ target_include_directories(ClassicReverb PUBLIC
     widgets/dpf-imgui/DearImGui
     widgets/imgui-knobs-mod
     widgets/imgui-ext
+    ${PROJECT_BINARY_DIR}
 )
 
 # Ensure C++17 (needed for std::clamp etc.)
 target_compile_features(ClassicReverb PUBLIC cxx_std_17)
+
+# Add configure file
+configure_file (src/config.h.in ${PROJECT_BINARY_DIR}/config.h @ONLY)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Compiler warnings / options
