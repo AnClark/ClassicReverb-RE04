@@ -115,12 +115,13 @@ void ClassicReverbPlugin::allocateBuffers()
 
     // Early reflection buffer: needs to hold up to kErDelay[6] at current SR
     int maxErLen = (int)(kErDelay[6] * sr) + 4;
-    fErBuf.reset(maxErLen + 1);
+    fErBufL.reset(maxErLen + 1);
+    fErBufR.reset(maxErLen + 1);
     for (int t = 0; t < 7; ++t)
     {
         fErDelayLen[t] = std::max(1, (int)(kErDelay[t] * sr));
         // Safety: clamp to buffer size so read() never goes out of bounds
-        fErDelayLen[t] = std::min(fErDelayLen[t], fErBuf.size - 1);
+        fErDelayLen[t] = std::min(fErDelayLen[t], fErBufL.size - 1);
     }
 
     // Allpass buffers

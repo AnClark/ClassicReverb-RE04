@@ -22,16 +22,18 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         float pdL, pdR;
         fPreDelay.process(dryL, dryR, pdL, pdR, fPreDelaySamples);
 
-        // ────── Early reflections (7-tap) ────────────────────────────
-        fErBuf.write(pdL + pdR);   // mono sum into ER buffer
+        // ────── Early reflections (7-tap, stereo) ───────────────────────
+        // Original DLL stores L and R separately (offset+0xf4 / offset+0xf8),
+        // giving true stereo early reflections rather than a mono sum.
+        fErBufL.write(pdL);
+        fErBufR.write(pdR);
 
         float erL = 0.0f, erR = 0.0f;
         for (int t = 0; t < 7; ++t)
         {
             int d = fErDelayLen[t];
-            float tap = fErBuf.read(d);
-            erL += tap * kErGain[t];
-            erR += tap * kErGain[t];
+            erL += fErBufL.read(d) * kErGain[t];
+            erR += fErBufR.read(d) * kErGain[t];
         }
         // Apply early-ref gain (parameter-controlled)
         erL *= fEarlyRefGain;
@@ -86,8 +88,17 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         float wetL = reverbL;
         float wetR = reverbR;
         float mix  = fMix;
-        outL[i] = ((1.0f - mix) * dryL + mix * wetL) * fLevelGain;
-        outR[i] = ((1.0f - mix) * dryR + mix * wetR) * fLevelGain;
+        float rawL = ((1.0f - mix) * dryL + mix * wetL) * fLevelGain;
+        float rawR = ((1.0f - mix) * dryR + mix * wetR) * fLevelGain;
+#if CLASSIC_REVERB_OUTPUT_SOFT_CLIP
+        // tanh soft clip: y = C * tanh(x / C)
+        // Unity slope at x=0; knee ~0 dBFS; ceiling ±kSoftClipCeiling.
+        outL[i] = kSoftClipCeiling * std::tanh(rawL * kSoftClipCeilingInv);
+        outR[i] = kSoftClipCeiling * std::tanh(rawR * kSoftClipCeilingInv);
+#else
+        outL[i] = rawL;
+        outR[i] = rawR;
+#endif
     }
 }
 
@@ -139,8 +150,28 @@ void ClassicReverbPlugin::updateCoefficients()
     // This gives at norm=0: scale=1 (tiny room), norm=1: scale=32 (large room)
     // At sr=44100, comb[0] norm=0.5: scale=sqrt(32)≈5.66 → 2092*5.66≈522 samples ≈ 11.8 ms ✓
 
+    // The original DLL stores Room Size as a 0–1 normalised value internally
+    // and computes roomScale = 32^param_bc (i.e. exp(ln32 * param_bc)).
+    // The UI range is 0.625–640 m², which spans exactly 1024 = 2^10 in ratio,
+    // so the correct inverse mapping is logarithmic:
+    //   roomNorm = log2(size / 0.625) / log2(640 / 0.625)
+    //            = log2(size / 0.625) / 10
+    // At size=20 m²: roomNorm = log2(32)/10 = 0.5  →  roomScale = sqrt(32) ≈ 5.66  ✓
+    // The previous linear mapping  (size-0.625)/(640-0.625) gave roomNorm≈0.030
+    // at 20 m², producing roomScale≈1.11 — a factor ~5× too small, causing
+    // RT60 to be ~5× shorter than the original DLL.
+    //
+    // TIP:
+    // You can optionally revert to the linear mapping by defining CLASSIC_REVERB_LOGARITHMIC_ROOM_SIZE=0,
+    // which gives a different flavour of reverb with a more compressed RT60 range
+    // and less extreme tails at large sizes.
+#if CLASSIC_REVERB_LOGARITHMIC_ROOM_SIZE
+    float roomNorm = std::log2(fParams[kParamRoomSize] / 0.625f) / 10.0f;
+    roomNorm = std::clamp(roomNorm, 0.0f, 1.0f);
+#else
     float roomNorm = std::clamp((fParams[kParamRoomSize] - 0.625f) / (640.0f - 0.625f),
                                 0.0f, 1.0f);
+#endif
     float roomScale = std::pow(kRoomSizeBase, roomNorm);
 
     for (int c = 0; c < 16; ++c)
@@ -223,7 +254,17 @@ void ClassicReverbPlugin::updateCoefficients()
         // Revised simpler formula matching original:
         // At hiDampNorm=0: fHiDampA=1, fHiDampB=0 (bypass)
         // At hiDampNorm=1: small fHiDampA → aggressive LP
+#if CLASSIC_REVERB_IMPROVED_HIDAMP_RANGE
+        // 2-decade range: fc sweeps 20000 Hz → 200 Hz (log(100) ≈ 4.605).
+        // Rationale: below ~200 Hz the LP already eliminates all HF content
+        // within the first few comb reflections; extending to 20 Hz only
+        // continues to mute an already-silent band, making the upper quarter
+        // of the knob travel perceptually inert.
+        float fc = 20000.0f * std::exp(-hiDampNorm * std::log(100.0f));
+#else
+        // Original 3-decade range: fc sweeps 20000 Hz → 20 Hz.
         float fc = 20000.0f * std::exp(-hiDampNorm * std::log(1000.0f));
+#endif
         fc = std::clamp(fc, 20.0f, fSampleRate * 0.499f);
         float omg = 2.0f * (float)M_PI * fc / fSampleRate;
         float sinO = std::sin(omg);
