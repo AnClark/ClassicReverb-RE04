@@ -34,6 +34,8 @@ private:
 
     float fParams[kParamCount];
 
+    bool fAboutWindowOpened; // Flag to track if the "About" window is open
+
     // -------------------------------------------------------------------
     // Internal procedures
 
