@@ -139,8 +139,28 @@ void ClassicReverbPlugin::updateCoefficients()
     // This gives at norm=0: scale=1 (tiny room), norm=1: scale=32 (large room)
     // At sr=44100, comb[0] norm=0.5: scale=sqrt(32)≈5.66 → 2092*5.66≈522 samples ≈ 11.8 ms ✓
 
+    // The original DLL stores Room Size as a 0–1 normalised value internally
+    // and computes roomScale = 32^param_bc (i.e. exp(ln32 * param_bc)).
+    // The UI range is 0.625–640 m², which spans exactly 1024 = 2^10 in ratio,
+    // so the correct inverse mapping is logarithmic:
+    //   roomNorm = log2(size / 0.625) / log2(640 / 0.625)
+    //            = log2(size / 0.625) / 10
+    // At size=20 m²: roomNorm = log2(32)/10 = 0.5  →  roomScale = sqrt(32) ≈ 5.66  ✓
+    // The previous linear mapping  (size-0.625)/(640-0.625) gave roomNorm≈0.030
+    // at 20 m², producing roomScale≈1.11 — a factor ~5× too small, causing
+    // RT60 to be ~5× shorter than the original DLL.
+    //
+    // TIP:
+    // You can optionally revert to the linear mapping by defining CLASSIC_REVERB_LOGARITHMIC_ROOM_SIZE=0,
+    // which gives a different flavour of reverb with a more compressed RT60 range
+    // and less extreme tails at large sizes.
+#if CLASSIC_REVERB_LOGARITHMIC_ROOM_SIZE
+    float roomNorm = std::log2(fParams[kParamRoomSize] / 0.625f) / 10.0f;
+    roomNorm = std::clamp(roomNorm, 0.0f, 1.0f);
+#else
     float roomNorm = std::clamp((fParams[kParamRoomSize] - 0.625f) / (640.0f - 0.625f),
                                 0.0f, 1.0f);
+#endif
     float roomScale = std::pow(kRoomSizeBase, roomNorm);
 
     for (int c = 0; c < 16; ++c)

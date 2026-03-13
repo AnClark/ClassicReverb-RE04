@@ -72,4 +72,9 @@ static constexpr float kApDelay[3] = { 0.000200f, 0.000252f, 0.000317f };
 // Set to 0 to restore the unconstrained (20 Hz floor) behaviour.
 #define CLASSIC_REVERB_IMPROVED_HIDAMP_RANGE 1
 
+// Set to 1 to use a logarithmic mapping for the Room Size parameter,
+// giving a more natural progression of RT60 values and more extreme tails at large sizes.
+// This matches the behaviour of the original Classic Reverb plugin.
+#define CLASSIC_REVERB_LOGARITHMIC_ROOM_SIZE 1
+
 #endif // CLASSIC_REVERB_DEFINES_H_INCLUDED
