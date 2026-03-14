@@ -111,10 +111,11 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
     {
         fAboutWindowOpened = true;      // Open "About" window
     }
-    // FIXME: DPF ImGui impl. seems to have some issues with hardware cursors with Dear ImGui (e.g. cannot set cursor shape).
-    //        See DGL::Window::setCursor().
+
     if (ImGui::IsItemHovered())
-        ImGui::SetMouseCursor(7); // Hand cursor
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    }
 
     //
     // Draw the "triangle" layered at the bottom of the "AUDIO" text
