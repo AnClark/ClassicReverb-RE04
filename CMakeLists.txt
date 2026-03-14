@@ -42,6 +42,9 @@ target_include_directories(ClassicReverb PUBLIC
     ${PROJECT_BINARY_DIR}
 )
 
+# Turn on features on external dependencies (e.g. Widgets)
+target_compile_definitions (ClassicReverb-ui PRIVATE IMGUI_KNOBS_SET_CURSOR=1)  # Enable cursor changes in knobs (AnClark's Mod).
+
 # Ensure C++17 (needed for std::clamp etc.)
 target_compile_features(ClassicReverb PUBLIC cxx_std_17)
 
