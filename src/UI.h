@@ -45,6 +45,12 @@ private:
     void _drawPluginName();
 
     void _addKnob(Parameters paramId, const char* label, float v_min, float v_max, const ImGuiKnobs_Mod::KnobScaleMark *marks, uint32_t mark_count, bool isLogarithmic = false, bool use_pivot = false, float pivot_value = 0.0f); // Helper function to add a knob with given parameters (called from onImGuiDisplay)
+    inline void _addKnob(Parameters paramId, const char* label, const ImGuiKnobs_Mod::KnobScaleMark *marks, uint32_t mark_count, bool isLogarithmic = false, bool use_pivot = false, float pivot_value = 0.0f)
+    {
+        // This variant of _addKnob uses the predefined parameter ranges from kParamRanges,
+        // so you only need to specify the paramId and it will automatically use the correct min/max values.
+        _addKnob(paramId, label, kParamRanges[paramId].min, kParamRanges[paramId].max, marks, mark_count, isLogarithmic, use_pivot, pivot_value);
+    }
 
     bool _BeginSection(const char* title, float width); // Helper function to begin a new section with a centered title.
     void _EndSection(); // Helper function to end a section started with _BeginSection.

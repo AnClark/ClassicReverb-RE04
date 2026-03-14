@@ -169,15 +169,15 @@ void ClassicReverbUI::onImGuiDisplay()
                 ImGui::Dummy(ImVec2(12, 0));
                 ImGui::SameLine();
 
-                _addKnob(kParamRoomSize, "SIZE (m²)", 0.625f, 640.0f, kSizeMarks, IM_ARRAYSIZE(kSizeMarks), true);
+                _addKnob(kParamRoomSize, "SIZE (m²)", kSizeMarks, IM_ARRAYSIZE(kSizeMarks), true);
 
                 ImGui::SameLine(0, 35);
 
-                _addKnob(kParamDamping, "DAMPING", 0.0f, 100.0f, kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
+                _addKnob(kParamDamping, "DAMPING", kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
 
                 ImGui::SameLine(0, 35);
 
-                _addKnob(kParamPreDelay, "PREDELAY (ms)", -150.0f, 150.0f, kPreDelayMarks, IM_ARRAYSIZE(kPreDelayMarks), false);
+                _addKnob(kParamPreDelay, "PREDELAY (ms)", kPreDelayMarks, IM_ARRAYSIZE(kPreDelayMarks), false);
 
                 _EndSection();              
             }
@@ -190,11 +190,11 @@ void ClassicReverbUI::onImGuiDisplay()
                 ImGui::Dummy(ImVec2(2, 0));
                 ImGui::SameLine();
 
-                _addKnob(kParamHiDamp, "HI DAMP.", 0.0f, 100.0f, kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
+                _addKnob(kParamHiDamp, "HI DAMP.", kDampingMarks, IM_ARRAYSIZE(kDampingMarks));
 
                 ImGui::SameLine(0, 35);
 
-                _addKnob(kParamLoCut, "LO CUT (Hz)", 20.0f, 1000.0f, kLoCutMarks, IM_ARRAYSIZE(kLoCutMarks), true);
+                _addKnob(kParamLoCut, "LO CUT (Hz)", kLoCutMarks, IM_ARRAYSIZE(kLoCutMarks), true);
 
                 _EndSection();
             }
@@ -207,18 +207,18 @@ void ClassicReverbUI::onImGuiDisplay()
                 ImGui::Dummy(ImVec2(1, 0));
                 ImGui::SameLine();
   
-                _addKnob(kParamEarlyRef, "EARLY REF. (dB)", -40.0f, 6.0f, kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks),
+                _addKnob(kParamEarlyRef, "EARLY REF. (dB)", kEarlyRefMarks, IM_ARRAYSIZE(kEarlyRefMarks),
                          false,   // isLogarithmic
                          true,    // use_pivot: knob centre = 0 dB
                          0.0f);   // pivot_value
 
                 ImGui::SameLine(0, 20);
 
-                _addKnob(kParamMix, "MIX", 0.0f, 100.0f, kMixMarks, IM_ARRAYSIZE(kMixMarks));
+                _addKnob(kParamMix, "MIX", kMixMarks, IM_ARRAYSIZE(kMixMarks));
 
                 ImGui::SameLine(0, 30);
 
-                _addKnob(kParamLevel, "LEVEL", -10.0f, 10.0f, kLevelMarks, IM_ARRAYSIZE(kLevelMarks));
+                _addKnob(kParamLevel, "LEVEL", kLevelMarks, IM_ARRAYSIZE(kLevelMarks));
 
                 _EndSection();
             }
