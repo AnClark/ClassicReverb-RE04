@@ -9,14 +9,8 @@ ClassicReverbPlugin::ClassicReverbPlugin()
     : DISTRHO::Plugin(kParamCount, 0, 0)
 {
     // Default parameter values – physical units matching initParameter() ranges
-    fParams[kParamRoomSize] = 80.0f;    // m²
-    fParams[kParamDamping]  = 40.0f;    // %
-    fParams[kParamPreDelay] = 0.0f;     // ms
-    fParams[kParamHiDamp]   = 30.0f;    // %
-    fParams[kParamLoCut]    = 80.0f;    // Hz
-    fParams[kParamEarlyRef] = -6.0f;    // dB
-    fParams[kParamMix]      = 35.0f;    // %
-    fParams[kParamLevel]    = 0.0f;     // dB
+    for (uint32_t i = 0; i < kParamCount; ++i)
+        fParams[i] = kParamRanges[i].def;
 
     // Call sampleRateChanged() to allocate buffers based on the initial sample rate.
     // This ensures that the plugin is ready to process audio immediately after construction.
