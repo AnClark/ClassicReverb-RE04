@@ -3,6 +3,7 @@
 
 #include "DistrhoPlugin.hpp"
 #include "Structures.h"
+#include "config.h"
 
 class ClassicReverbPlugin : public DISTRHO::Plugin
 {
@@ -14,7 +15,7 @@ protected:
     const char* getLabel()   const override { return DISTRHO_PLUGIN_NAME; }
     const char* getMaker()   const override { return DISTRHO_PLUGIN_BRAND; }
     const char* getLicense() const override { return "GPLv3+"; }
-    uint32_t    getVersion() const override { return d_version(1, 0, 0); }
+    uint32_t    getVersion() const override { return d_version(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH); }
 
     // ── Parameters ────────────────────────────────────────────────────────
     void initParameter(uint32_t index, Parameter& param) override;

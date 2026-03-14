@@ -22,14 +22,14 @@ enum Parameters
 
 constexpr DISTRHO::ParameterRanges kParamRanges[kParamCount] = {
     // def, min, max
-    {  80.0f, 0.625f, 640.0f  },   // Room Size
-    {  40.0f, 0.0f,   100.0f  },   // Damping
-    {  0.0f,  -150.0f, 150.0f, },   // Pre-delay
-    {  30.0f, 0.0f,   100.0f,  },   // Hi Damping
-    {  80.0f, 20.0f,  1000.0f,  },   // Lo-Cut
-    {  -6.0f, -40.0f, 6.0f,    },   // Early Reflections
-    {  35.0f, 0.0f,   100.0f,  },   // Mix
-    {  0.0f,  -10.0f, 10.0f,   },   // Level
+    {  80.0f, 0.625f, 640.0f   },   // Room Size, m²
+    {  40.0f, 0.0f,   100.0f   },   // Damping, %
+    {  0.0f,  -150.0f, 150.0f, },   // Pre-delay, ms
+    {  30.0f, 0.0f,   100.0f,  },   // Hi Damping, %
+    {  80.0f, 20.0f,  1000.0f, },   // Lo-Cut, Hz
+    {  -6.0f, -40.0f, 6.0f,    },   // Early Reflections, dB
+    {  35.0f, 0.0f,   100.0f,  },   // Mix, %
+    {  0.0f,  -10.0f, 10.0f,   },   // Level, dB
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
