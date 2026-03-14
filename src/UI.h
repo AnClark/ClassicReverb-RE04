@@ -35,6 +35,7 @@ private:
     float fParams[kParamCount];
 
     bool fAboutWindowOpened; // Flag to track if the "About" window is open
+    int  fLastMouseCursor;   // To track the last mouse cursor state for optimization
 
     // -------------------------------------------------------------------
     // Internal procedures
@@ -54,6 +55,7 @@ private:
 
     bool _BeginSection(const char* title, float width); // Helper function to begin a new section with a centered title.
     void _EndSection(); // Helper function to end a section started with _BeginSection.
+    void _UpdateMouseCursor(); // Update the OS mouse cursor based on the current ImGui mouse cursor state (called from onImGuiDisplay)
     
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClassicReverbUI)
 };

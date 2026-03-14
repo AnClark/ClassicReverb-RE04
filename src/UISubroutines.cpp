@@ -111,10 +111,11 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
     {
         fAboutWindowOpened = true;      // Open "About" window
     }
-    // FIXME: DPF ImGui impl. seems to have some issues with hardware cursors with Dear ImGui (e.g. cannot set cursor shape).
-    //        See DGL::Window::setCursor().
+
     if (ImGui::IsItemHovered())
-        ImGui::SetMouseCursor(7); // Hand cursor
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    }
 
     //
     // Draw the "triangle" layered at the bottom of the "AUDIO" text
@@ -323,4 +324,33 @@ void ClassicReverbUI::_EndSection()
 {
   
     ImGui::EndGroup();
+}
+
+void ClassicReverbUI::_UpdateMouseCursor()
+{
+    // Update OS mouse cursor with the cursor requested by Dear ImGui.
+    // According to ImGui's specs, mouse cursor changes should be implemented on the backend side.
+    //
+    // Since DPF-Widget's ImGui integration does not currently support hardware cursors,
+    // we need to manually set the cursor shape on the host window using DPF's Window::setCursor().
+
+    ImGuiMouseCursor mouse_cursor = ImGui::GetIO().MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
+    if (fLastMouseCursor != mouse_cursor)
+    {
+        fLastMouseCursor = mouse_cursor;
+        switch (mouse_cursor)
+        {
+            case ImGuiMouseCursor_None:    getWindow().setCursor(MouseCursor::kMouseCursorArrow); break;
+            case ImGuiMouseCursor_Arrow:   getWindow().setCursor(MouseCursor::kMouseCursorArrow); break;
+            case ImGuiMouseCursor_TextInput: getWindow().setCursor(MouseCursor::kMouseCursorCaret); break;
+            case ImGuiMouseCursor_ResizeAll: getWindow().setCursor(MouseCursor::kMouseCursorCrosshair); break;
+            case ImGuiMouseCursor_ResizeNS:  getWindow().setCursor(MouseCursor::kMouseCursorUpDown); break;
+            case ImGuiMouseCursor_ResizeEW:  getWindow().setCursor(MouseCursor::kMouseCursorLeftRight); break;
+            case ImGuiMouseCursor_ResizeNESW: getWindow().setCursor(MouseCursor::kMouseCursorUpRightDownLeft); break;
+            case ImGuiMouseCursor_ResizeNWSE: getWindow().setCursor(MouseCursor::kMouseCursorUpLeftDownRight); break;
+            case ImGuiMouseCursor_Hand:     getWindow().setCursor(MouseCursor::kMouseCursorHand); break;
+            case ImGuiMouseCursor_NotAllowed: getWindow().setCursor(MouseCursor::kMouseCursorNotAllowed); break;
+            default:                      getWindow().setCursor(MouseCursor::kMouseCursorArrow); break;
+        }
+    }
 }

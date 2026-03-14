@@ -106,6 +106,18 @@ namespace ImGuiKnobs_Mod {
                 angle = angle_min + (angle_max - angle_min) * t;
                 angle_cos = cosf(angle);
                 angle_sin = sinf(angle);
+
+#if IMGUI_KNOBS_SET_CURSOR
+                // AnClark's MOD: Set mouse cursor based on interaction state.
+                //                Useful for audio plugins where better user experience can be achieved by providing visual feedback
+                //                on when the knob is interactive.
+                if (is_hovered && !is_active) {
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                }
+                if (is_active) {
+                    ImGui::SetMouseCursor((flags & ImGuiKnobFlags_DragHorizontal) ? ImGuiMouseCursor_ResizeEW : ImGuiMouseCursor_ResizeNS);
+                }
+#endif
             }
 
             void draw_dot(float size, float radius, float angle, color_set color, bool filled, int segments) {
