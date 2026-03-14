@@ -332,6 +332,9 @@ void ClassicReverbUI::onImGuiDisplay()
             ImGui::End();
         }
     }
+
+    // Update the OS mouse cursor based on the current ImGui mouse cursor state
+    _UpdateMouseCursor();
 }
 
 // -----------------------------------------------------------------------
