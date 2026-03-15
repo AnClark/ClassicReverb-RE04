@@ -163,7 +163,7 @@ void ClassicReverbUI::onImGuiDisplay()
             ImGui::Dummy(ImVec2(2, 0));
             ImGui::SameLine();
 
-            if (_BeginSection("REVERBERATION", 90.0f * 3))        
+            if (_BeginSection("REVERBERATION", (90.0f - 4.0f) * 3))        
             {
                 // Add an extra left margin to the first knob so its leftmost scale mark doesn't get cut off.
                 ImGui::Dummy(ImVec2(12, 0));
@@ -184,7 +184,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
             ImGui::SameLine(0, 10);
 
-            if (_BeginSection("FILTERS", 90.0f * 2))
+            if (_BeginSection("FILTERS", (90.0f - 6.0f) * 2))
             {
                 // Add an extra left margin
                 ImGui::Dummy(ImVec2(2, 0));
@@ -201,7 +201,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
             ImGui::SameLine(0, 10);
 
-            if (_BeginSection("OUTPUT", 80.0f * 3))        
+            if (_BeginSection("OUTPUT", (80.0f - 2.0f) * 3))        
             {
                 // Add an extra left margin
                 ImGui::Dummy(ImVec2(1, 0));
@@ -212,7 +212,7 @@ void ClassicReverbUI::onImGuiDisplay()
                          true,    // use_pivot: knob centre = 0 dB
                          0.0f);   // pivot_value
 
-                ImGui::SameLine(0, 20);
+                ImGui::SameLine(0, 20 - 5);
 
                 _addKnob(kParamMix, "MIX", kMixMarks, IM_ARRAYSIZE(kMixMarks));
 
@@ -223,7 +223,7 @@ void ClassicReverbUI::onImGuiDisplay()
                 _EndSection();
             }
 
-            ImGui::SameLine(0, 2);
+            ImGui::SameLine(0, 10.0f);
 
             // Right panel (Logo, config buttons, etc.)
             {
@@ -268,7 +268,7 @@ void ClassicReverbUI::onImGuiDisplay()
             {
                 ImGui::Columns(2, "AboutColumns", false);
                 ImGui::SetColumnWidth(0, 400.0f - 5.0f);
-                ImGui::SetColumnWidth(1, 420.0f);
+                ImGui::SetColumnWidth(1, 420.0f - 15.0f);
 
                 {
                     const String versionStr = String("Classic Reverb RE-04") + "  |  Version " +
