@@ -3,6 +3,7 @@
 
 #include "DistrhoUI.hpp"
 #include "Structures.h"
+#include "PresetManager.h"
 
 // Forward decls.
 namespace ImGuiKnobs_Mod {
@@ -56,7 +57,13 @@ private:
     bool _BeginSection(const char* title, float width); // Helper function to begin a new section with a centered title.
     void _EndSection(); // Helper function to end a section started with _BeginSection.
     void _UpdateMouseCursor(); // Update the OS mouse cursor based on the current ImGui mouse cursor state (called from onImGuiDisplay)
-    
+
+    // -------------------------------------------------------------------
+    // Instances
+
+    ScopedPointer<PresetManager> fPresetManager;
+    friend class PresetManager;
+
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClassicReverbUI)
 };
 

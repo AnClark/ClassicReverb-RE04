@@ -2,6 +2,7 @@
 
 #include "CenteredSeparatorText.hpp"
 #include "imgui-knobs.h"
+#include "HardwareButton.hpp"
 
 #include "config.h"
 
@@ -106,6 +107,9 @@ ClassicReverbUI::ClassicReverbUI()
 {
     // Initialize parameters to default values (optional)
     std::memset(fParams, 0, sizeof(fParams));
+
+    // Initialize preset manager
+    fPresetManager = new PresetManager(this);
 
     // Load fonts for ImGui
     _loadFonts();
@@ -234,7 +238,35 @@ void ClassicReverbUI::onImGuiDisplay()
 
                 _drawKjaerhusLogo(ImVec2(100, 50));
 
-                ImGui::Dummy(ImVec2(0,23));     // TODO: This is a placeholder. I will add extra controls here in future.
+#if 1   // Extra controls.
+        // TODO: Make Preset Manager an optional feature
+                // Preset button
+                {
+                    ImGui::BeginGroup();
+                    ImGui::AlignTextToFramePadding();
+
+                    ImGui::Dummy(ImVec2(2, 0));
+                    ImGui::SameLine(0.0f, 0.0f);
+
+                    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);   // Use the smaller font for the preset button
+
+                    // TODO: Store current preset name in plugin state
+                    ImGuiExt::HardwareButton("Load Preset...##Preset",
+                                   ImVec2(100 - 3, ImGui::GetFrameHeight()),
+                                   ImVec4(0x2f / 255.0f, 0x4d / 255.0f, 0x44 / 255.0f, 1.0f));
+                    ImGui::SameLine(0.0f, 5.0f);
+                    ImGui::Text("PRESET");
+
+                    ImGui::PopFont();
+
+                    ImGui::EndGroup();
+                }
+
+                ImGui::Dummy(ImVec2(0, 0.5f));
+
+#else   // No extra controls, just a placeholder
+                ImGui::Dummy(ImVec2(0, 23));     // TODO: This is a placeholder. I will add extra controls here in future.
+#endif
 
                 _drawPluginName();
 

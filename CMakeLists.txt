@@ -25,6 +25,7 @@ dpf_add_plugin(ClassicReverb
     FILES_UI
         src/UI.cpp
         src/UISubroutines.cpp
+        src/PresetManager.cpp
         widgets/dpf-imgui/DearImGui.cpp
         widgets/imgui-knobs-mod/imgui-knobs.cpp
     NO_SHARED_RESOURCES
