@@ -292,7 +292,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
                 {
                     ImGui::SeparatorText("Disclaimer");
-                    ImGui::TextWrapped("This is an unofficial, reverse-engineered clone of the discontinued Kjaerhus Classic Reverb, aiming at bringing"
+                    ImGui::TextWrapped("This is a NON-official, reverse-engineered recreation of the discontinued Kjaerhus Classic Reverb, aiming at bringing "
                                             "this vintage and fantastic plugin to life again.");
                     ImGui::TextWrapped("This project is NOT related to official Kjaerhus Audio, Acoustica LLC. and their affiliates.");
                     ImGui::Dummy(ImVec2(0, 2));
