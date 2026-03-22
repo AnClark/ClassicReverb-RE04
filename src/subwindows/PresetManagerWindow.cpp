@@ -73,10 +73,13 @@ void ClassicReverbUI::_drawPresetManager()
     if (ImGui::Begin("##PresetManager", nullptr, kPmFlags))
     {
         // Close the overlay when the user clicks outside it.
-        // Skip this check while any popup modal is open (Save As / Rename / Delete / …)
+        // Skip while any popup modal is open (Save As / Rename / Delete / Message Box / …)
+        // so that dismissing a modal dialog (e.g. clicking "OK" in the message box)
+        // is not mis-interpreted as a "click outside" that would close this window.
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
             !ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows |
-                                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+                                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) &&
+            !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId))
         {
             fPresetManagerOpened = false;
         }
