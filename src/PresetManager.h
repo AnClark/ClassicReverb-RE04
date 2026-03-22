@@ -93,8 +93,11 @@ public:
     void markModified();  // called when the user tweaks a knob
     void clearModified();
 
-    // Push preset metadata to DPF plugin state so the host can save / restore it
-    void syncPluginState();
+    // Push preset metadata to DPF plugin state so the host can save / restore it.
+    // Full overload: atomically sets type/index/modified and emits state.
+    void syncPluginState(PresetType type, int index, bool modified);
+    // Convenience overload: keeps current type/index, only updates modified flag.
+    void syncPluginState(bool modified);
 
     // Capture current UI parameter values into a Preset struct (name is left empty)
     Preset snapshotFromUI() const;
