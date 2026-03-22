@@ -1,6 +1,8 @@
 #ifndef CLASSIC_REVERB_UI_H
 #define CLASSIC_REVERB_UI_H
 
+#include <string>
+
 #include "DistrhoUI.hpp"
 #include "Structures.h"
 #include "PresetManager.h"
@@ -24,6 +26,11 @@ protected:
     void parameterChanged(uint32_t index, float value) override;
 
     // -------------------------------------------------------------------
+    // State Callbacks (DPF WANT_STATE)
+
+    void stateChanged(const char* key, const char* value) override;
+
+    // -------------------------------------------------------------------
     // ImGui Callbacks
 
     void onImGuiDisplay() override;
@@ -37,6 +44,24 @@ private:
 
     bool fAboutWindowOpened; // Flag to track if the "About" window is open
     int  fLastMouseCursor;   // To track the last mouse cursor state for optimization
+
+    // -------------------------------------------------------------------
+    // Preset Manager UI state
+
+    // Dialog mode enum (for modal popups inside the preset manager overlay)
+    enum class PmDialogMode { None, SaveNew, Rename, ConfirmDelete, ConfirmUpdate, ImportFile, ExportFile };
+
+    bool              fPresetManagerOpened  = false;
+    PmDialogMode      fPmDialogMode         = PmDialogMode::None;
+    char              fPmNameBuffer[128]    = {};   // text input for Save As / Rename dialogs
+    char              fPmFilePathBuffer[512]= {};   // text input for Import / Export dialogs
+    std::string       fPmStatusMessage;             // transient feedback shown in the UI
+    // TODO: Use message box instead of transient messages
+
+    // Buffered values for atomic state restoration from stateChanged() callbacks
+    std::string fRestoredPresetType = "Factory";
+    std::string fRestoredPresetName;
+    bool        fRestoredModified   = false;
 
     // -------------------------------------------------------------------
     // Internal procedures
@@ -57,6 +82,10 @@ private:
     bool _BeginSection(const char* title, float width); // Helper function to begin a new section with a centered title.
     void _EndSection(); // Helper function to end a section started with _BeginSection.
     void _UpdateMouseCursor(); // Update the OS mouse cursor based on the current ImGui mouse cursor state (called from onImGuiDisplay)
+
+    // Preset Manager related procedures
+    void _drawPresetManager(); // Draw the preset manager overlay window (implemented in PresetManagerUI.cpp)
+    void _applyRestoredPresetState(); // Restore preset context from buffered stateChanged() values
 
     // -------------------------------------------------------------------
     // Instances

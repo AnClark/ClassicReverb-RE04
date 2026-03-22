@@ -287,6 +287,7 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
         marks, mark_count, &kScaleMarkStyle, pivot_value))
     {
         setParameterValue(paramId, fParams[paramId]);
+        fPresetManager->markModified();
     }
 
     // NOTE: Putting ImGui::IsItemActivated() in ImGuiKnobs_Mod::Knob() will cause IsItemActivated() unavailable.

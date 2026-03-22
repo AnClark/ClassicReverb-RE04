@@ -22,6 +22,10 @@ protected:
     float getParameterValue(uint32_t index) const override;
     void setParameterValue(uint32_t index, float value) override;
 
+    // ── State ──────────────────────────────────────────────────────────────
+    void initState(uint32_t index, State& state) override;
+    void setState(const char* key, const char* value) override;
+
     // ── Audio processing ──────────────────────────────────────────────────
     void activate() override;
     void sampleRateChanged(double newSampleRate) override;

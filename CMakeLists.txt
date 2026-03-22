@@ -26,6 +26,7 @@ dpf_add_plugin(ClassicReverb
         src/UI.cpp
         src/UISubroutines.cpp
         src/PresetManager.cpp
+        src/subwindows/PresetManagerWindow.cpp
         widgets/dpf-imgui/DearImGui.cpp
         widgets/imgui-knobs-mod/imgui-knobs.cpp
     NO_SHARED_RESOURCES
@@ -41,6 +42,7 @@ target_include_directories(ClassicReverb PUBLIC
     widgets/imgui-knobs-mod
     widgets/imgui-ext
     ${PROJECT_BINARY_DIR}
+    3rdparty
 )
 
 # Turn on features on external dependencies (e.g. Widgets)

@@ -108,8 +108,9 @@ ClassicReverbUI::ClassicReverbUI()
     // Initialize parameters to default values (optional)
     std::memset(fParams, 0, sizeof(fParams));
 
-    // Initialize preset manager
+    // Initialize preset manager and load persisted user presets from disk
     fPresetManager = new PresetManager(this);
+    fPresetManager->loadUserPresetsFromDisk();
 
     // Load fonts for ImGui
     _loadFonts();
@@ -240,7 +241,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
 #if 1   // Extra controls.
         // TODO: Make Preset Manager an optional feature
-                // Preset button
+                // Preset button — label shows the current preset name
                 {
                     ImGui::BeginGroup();
                     ImGui::AlignTextToFramePadding();
@@ -250,10 +251,23 @@ void ClassicReverbUI::onImGuiDisplay()
 
                     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);   // Use the smaller font for the preset button
 
-                    // TODO: Store current preset name in plugin state
-                    ImGuiExt::HardwareButton("Load Preset...##Preset",
-                                   ImVec2(100 - 3, ImGui::GetFrameHeight()),
-                                   ImVec4(0x2f / 255.0f, 0x4d / 255.0f, 0x44 / 255.0f, 1.0f));
+                    {
+                        const Preset* curPreset = fPresetManager->currentPreset();
+                        std::string   btnLabel;
+                        if (curPreset) {
+                            btnLabel = curPreset->name;
+                            if (fPresetManager->isModified()) btnLabel += " *";
+                        } else {
+                            btnLabel = "Select Preset...";
+                        }
+                        btnLabel += "##Preset";
+                        if (ImGuiExt::HardwareButton(btnLabel.c_str(),
+                                           ImVec2(100 - 3, ImGui::GetFrameHeight()),
+                                           ImVec4(0x2f / 255.0f, 0x4d / 255.0f, 0x44 / 255.0f, 1.0f)))
+                        {
+                            fPresetManagerOpened = !fPresetManagerOpened;
+                        }
+                    }
                     ImGui::SameLine(0.0f, 5.0f);
                     ImGui::Text("PRESET");
 
@@ -367,6 +381,25 @@ void ClassicReverbUI::onImGuiDisplay()
 
     // Update the OS mouse cursor based on the current ImGui mouse cursor state
     _UpdateMouseCursor();
+
+    // Draw the preset manager overlay (renders nothing when fPresetManagerOpened == false)
+    _drawPresetManager();
+}
+
+// -----------------------------------------------------------------------
+// State callbacks
+
+void ClassicReverbUI::stateChanged(const char* key, const char* value)
+{
+    // Buffer each restored value; rebuild state after all three arrive.
+    if (std::strcmp(key, STATE_PRESET_TYPE) == 0)
+        fRestoredPresetType = value;
+    else if (std::strcmp(key, STATE_PRESET_NAME) == 0)
+        fRestoredPresetName = value;
+    else if (std::strcmp(key, STATE_PRESET_MODIFIED) == 0)
+        fRestoredModified = (std::strcmp(value, "true") == 0);
+
+    _applyRestoredPresetState();
 }
 
 // -----------------------------------------------------------------------
