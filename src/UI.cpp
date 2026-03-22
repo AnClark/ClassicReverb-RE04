@@ -382,6 +382,9 @@ void ClassicReverbUI::onImGuiDisplay()
     // Update the OS mouse cursor based on the current ImGui mouse cursor state
     _UpdateMouseCursor();
 
+    // Poll the native file browser dialog (Import/Export). Must be called every frame.
+    _handleFileBrowserIdle();
+
     // Draw the preset manager overlay (renders nothing when fPresetManagerOpened == false)
     _drawPresetManager();
 }

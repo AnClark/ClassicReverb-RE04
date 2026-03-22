@@ -4,6 +4,7 @@
 #include <string>
 
 #include "DistrhoUI.hpp"
+#include "FileBrowserDialog.hpp"  // DPF cross-platform file browser API
 #include "Structures.h"
 #include "PresetManager.h"
 
@@ -49,12 +50,11 @@ private:
     // Preset Manager UI state
 
     // Dialog mode enum (for modal popups inside the preset manager overlay)
-    enum class PmDialogMode { None, SaveNew, Rename, ConfirmDelete, ConfirmUpdate, ImportFile, ExportFile };
+    enum class PmDialogMode { None, SaveNew, Rename, ConfirmDelete, ConfirmUpdate };
 
     bool              fPresetManagerOpened  = false;
     PmDialogMode      fPmDialogMode         = PmDialogMode::None;
     char              fPmNameBuffer[128]    = {};   // text input for Save As / Rename dialogs
-    char              fPmFilePathBuffer[512]= {};   // text input for Import / Export dialogs
     std::string       fPmStatusMessage;             // transient feedback shown in the UI
     // TODO: Use message box instead of transient messages
 
@@ -92,6 +92,17 @@ private:
 
     ScopedPointer<PresetManager> fPresetManager;
     friend class PresetManager;
+
+    // -------------------------------------------------------------------
+    // File browser stuff (DPF cross-platform native file dialog)
+
+    // Definitions & states
+    enum class FileBrowserAction { None, Import, Export };
+    DGL_NAMESPACE::FileBrowserHandle fFileBrowserHandle = nullptr;  // nullptr = no dialog open
+    FileBrowserAction                fFileBrowserAction = FileBrowserAction::None;
+
+    // Poll native file dialog each frame; process result when dialog closes
+    void _handleFileBrowserIdle();  // Should be called from onImGuiDisplay() to handle file browser state and results
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClassicReverbUI)
 };

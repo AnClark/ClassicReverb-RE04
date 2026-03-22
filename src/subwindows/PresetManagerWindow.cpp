@@ -9,6 +9,7 @@
 #include "PresetManager.h"
 
 #include "imgui.h"
+#include "FileBrowserDialog.hpp"  // DPF cross-platform file browser API
 
 #include <cstring>
 #include <string>
@@ -347,9 +348,19 @@ void ClassicReverbUI::_drawPresetManager()
 
             // 5) Import
             if (ImGui::Button("Import", ImVec2(kWImp, kActH))) {
-                fPmDialogMode = PmDialogMode::ImportFile;
-                std::memset(fPmFilePathBuffer, 0, sizeof(fPmFilePathBuffer));
-                ImGui::OpenPopup("Import Preset##PM");
+                // Open a native OS file-open dialog (non-blocking).
+                // The result is processed every frame in _handleFileBrowserIdle().
+                if (fFileBrowserHandle == nullptr) {
+                    DGL_NAMESPACE::FileBrowserOptions opts;
+                    opts.saving = false;
+                    opts.title  = "Import Preset";
+                    fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
+                        true,
+                        getWindow().getNativeWindowHandle(),
+                        getScaleFactor(),
+                        opts);
+                    fFileBrowserAction = FileBrowserAction::Import;
+                }
             }
             ImGui::SameLine();
 
@@ -358,13 +369,21 @@ void ClassicReverbUI::_drawPresetManager()
             if (ImGui::Button("Export", ImVec2(kWExp, kActH))) {
                 // Pre-fill the default filename from the current preset name.
                 const Preset* cur = fPresetManager->currentPreset();
-                if (cur) {
-                    std::strncpy(fPmFilePathBuffer, cur->name.c_str(),
-                                 sizeof(fPmFilePathBuffer) - 1);
-                    std::strncat(fPmFilePathBuffer, ".json",
-                                 sizeof(fPmFilePathBuffer) - std::strlen(fPmFilePathBuffer) - 1);
+                std::string defaultName = cur ? cur->name + ".json" : "preset.json";
+
+                // Open a native OS file-save dialog (non-blocking).
+                if (fFileBrowserHandle == nullptr) {
+                    DGL_NAMESPACE::FileBrowserOptions opts;
+                    opts.saving      = true;
+                    opts.title       = "Export Preset";
+                    opts.defaultName = defaultName.c_str();
+                    fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
+                        true,
+                        getWindow().getNativeWindowHandle(),
+                        getScaleFactor(),
+                        opts);
+                    fFileBrowserAction = FileBrowserAction::Export;
                 }
-                ImGui::OpenPopup("Export Preset##PM");
             }
             if (!fPresetManager->currentPreset()) ImGui::EndDisabled();
 
@@ -505,68 +524,6 @@ void ClassicReverbUI::_drawPresetManager()
                 ImGui::EndPopup();
             }
 
-            // ── Import (file path text input) ─────────────────────────────
-            ImGui::SetNextWindowPos(centre, ImGuiCond_Always, pivot);
-            if (ImGui::BeginPopupModal("Import Preset##PM", nullptr,
-                                       ImGuiWindowFlags_AlwaysAutoResize |
-                                       ImGuiWindowFlags_NoMove))
-            {
-                ImGui::Text("Enter the full path to the JSON preset file:");
-                ImGui::SetNextItemWidth(400.0f);
-                bool doImport = ImGui::InputText("##PMImportPath", fPmFilePathBuffer,
-                                                 sizeof(fPmFilePathBuffer),
-                                                 ImGuiInputTextFlags_EnterReturnsTrue);
-                ImGui::Spacing();
-                if (doImport || ImGui::Button("Import##imp", ImVec2(70.0f, 0.0f))) {
-                    if (fPmFilePathBuffer[0] != '\0') {
-                        if (fPresetManager->importFromFile(fPmFilePathBuffer)) {
-                            const Preset* imported = fPresetManager->currentPreset();
-                            fPmStatusMessage = std::string("Imported: ")
-                                             + (imported ? imported->name : "");
-                        } else {
-                            fPmStatusMessage = "Import failed: cannot read file.";
-                        }
-                        fPmDialogMode = PmDialogMode::None;
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel##imp", ImVec2(70.0f, 0.0f))) {
-                    fPmDialogMode = PmDialogMode::None;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-
-            // ── Export (file path text input) ─────────────────────────────
-            ImGui::SetNextWindowPos(centre, ImGuiCond_Always, pivot);
-            if (ImGui::BeginPopupModal("Export Preset##PM", nullptr,
-                                       ImGuiWindowFlags_AlwaysAutoResize |
-                                       ImGuiWindowFlags_NoMove))
-            {
-                ImGui::Text("Enter the full path to save the preset JSON:");
-                ImGui::SetNextItemWidth(400.0f);
-                bool doExport = ImGui::InputText("##PMExportPath", fPmFilePathBuffer,
-                                                 sizeof(fPmFilePathBuffer),
-                                                 ImGuiInputTextFlags_EnterReturnsTrue);
-                ImGui::Spacing();
-                if (doExport || ImGui::Button("Export##exp", ImVec2(70.0f, 0.0f))) {
-                    if (fPmFilePathBuffer[0] != '\0') {
-                        if (fPresetManager->exportCurrentToFile(fPmFilePathBuffer))
-                            fPmStatusMessage = "Preset exported.";
-                        else
-                            fPmStatusMessage = "Export failed: cannot write file.";
-                        fPmDialogMode = PmDialogMode::None;
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel##exp", ImVec2(70.0f, 0.0f))) {
-                    fPmDialogMode = PmDialogMode::None;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
         }
         ImGui::EndChild(); // UserCol
         ImGui::PopStyleColor(); // ChildBg
