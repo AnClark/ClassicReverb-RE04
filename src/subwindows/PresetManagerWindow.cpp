@@ -150,7 +150,6 @@ void ClassicReverbUI::_drawPresetManager()
                     }
                     if (ImGui::Button("Default", ImVec2(btnW, kBtnH))) {
                         fPresetManager->loadDefaultPreset();
-                        fPmStatusMessage.clear();
                         fPresetManagerOpened = false;
                     }
                     if (sel) ImGui::PopStyleColor(2);
@@ -171,7 +170,6 @@ void ClassicReverbUI::_drawPresetManager()
                     }
                     if (ImGui::Button(p.name.c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectFactoryPreset(i);
-                        fPmStatusMessage.clear();
                         fPresetManagerOpened = false;
                     }
                     if (sel) ImGui::PopStyleColor(2);
@@ -212,13 +210,9 @@ void ClassicReverbUI::_drawPresetManager()
             const float btnW   = (innerW - gap) * 0.5f;
 
             // Height available for the preset list (below header, above action row + status)
-            const float statusH = fPmStatusMessage.empty()
-                                ? 0.0f
-                                : (ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y);
             const float listH = ImGui::GetContentRegionAvail().y
                               - actionRowH
-                              - ImGui::GetStyle().ItemSpacing.y
-                              - statusH;
+                              - ImGui::GetStyle().ItemSpacing.y;
 
             if (ImGui::BeginChild("##UserList", ImVec2(0.0f, listH), false))
             {
@@ -241,7 +235,6 @@ void ClassicReverbUI::_drawPresetManager()
                     }
                     if (ImGui::Button(p.name.c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectUserPreset(i);
-                        fPmStatusMessage.clear();
                         fPresetManagerOpened = false;
                     }
                     if (sel) ImGui::PopStyleColor(2);
@@ -261,7 +254,6 @@ void ClassicReverbUI::_drawPresetManager()
                     const Preset* imp = fPresetManager->importedPreset();
                     if (ImGui::Button(imp->name.c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectImportedPreset();
-                        fPmStatusMessage.clear();
                         fPresetManagerOpened = false;
                     }
                     ImGui::PopStyleColor(2);
@@ -270,14 +262,6 @@ void ClassicReverbUI::_drawPresetManager()
                 }
             }
             ImGui::EndChild(); // UserList
-
-            // Status message line
-            // TODO: Port Cetone Synth's nice message box system here.
-            if (!fPmStatusMessage.empty()) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.25f, 1.0f));
-                ImGui::TextUnformatted(fPmStatusMessage.c_str());
-                ImGui::PopStyleColor();
-            }
 
             // ── Action buttons (right-aligned) ─────────────────────────────
             constexpr float kWDel    = 46.0f;
@@ -431,10 +415,10 @@ void ClassicReverbUI::_drawPresetManager()
                                     break;
                                 }
                             }
-                            fPmStatusMessage = "Preset overwritten: " + name;
+                            _showMessageBox("Preset overwritten: " + name);
                         } else {
                             fPresetManager->saveAsNew(name);
-                            fPmStatusMessage = "Saved: " + name;
+                            _showMessageBox("Saved: " + name);
                         }
                         fPmDialogMode = PmDialogMode::None;
                         ImGui::CloseCurrentPopup();
@@ -464,7 +448,7 @@ void ClassicReverbUI::_drawPresetManager()
                     const std::string name(fPmNameBuffer);
                     if (!name.empty()) {
                         fPresetManager->renameCurrent(name);
-                        fPmStatusMessage = "Renamed to: " + name;
+                        _showMessageBox("Renamed to: " + name);
                         fPmDialogMode = PmDialogMode::None;
                         ImGui::CloseCurrentPopup();
                     }
@@ -489,7 +473,7 @@ void ClassicReverbUI::_drawPresetManager()
                 ImGui::Spacing();
                 if (ImGui::Button("Overwrite##upd", ImVec2(80.0f, 0.0f))) {
                     fPresetManager->overwriteCurrent();
-                    fPmStatusMessage = "Preset updated.";
+                    _showMessageBox("Preset " + cur->name + " updated.");
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
@@ -514,7 +498,7 @@ void ClassicReverbUI::_drawPresetManager()
                 ImGui::PushStyleColor(ImGuiCol_Button, kColDanger);
                 if (ImGui::Button("Delete##dl", ImVec2(70.0f, 0.0f))) {
                     fPresetManager->deleteCurrent();
-                    fPmStatusMessage = "Preset deleted.";
+                    _showMessageBox("Preset deleted.");
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }

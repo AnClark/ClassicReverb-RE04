@@ -24,18 +24,19 @@ void ClassicReverbUI::_handleFileBrowserIdle()
             case FileBrowserAction::Import:
                 if (fPresetManager->importFromFile(selectedPath)) {
                     const Preset* imported = fPresetManager->currentPreset();
-                    fPmStatusMessage = std::string("Imported: ")
+                    const auto message = std::string("Imported: ")
                                      + (imported ? imported->name : "");
+                    _showMessageBox(message);
                 } else {
-                    fPmStatusMessage = "Import failed: cannot read file.";
+                    _showMessageBox("Import failed: cannot read file.");
                 }
                 break;
 
             case FileBrowserAction::Export:
                 if (fPresetManager->exportCurrentToFile(selectedPath))
-                    fPmStatusMessage = "Preset exported.";
+                    _showMessageBox("Preset exported.");
                 else
-                    fPmStatusMessage = "Export failed: cannot write file.";
+                    _showMessageBox("Export failed: cannot write file.");
                 break;
 
             default:

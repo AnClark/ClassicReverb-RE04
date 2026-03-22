@@ -387,6 +387,9 @@ void ClassicReverbUI::onImGuiDisplay()
 
     // Draw the preset manager overlay (renders nothing when fPresetManagerOpened == false)
     _drawPresetManager();
+
+    // Handle message box display
+    _handleMessageBoxIdle();
 }
 
 // -----------------------------------------------------------------------

@@ -2,6 +2,8 @@
 #define CLASSIC_REVERB_UI_H
 
 #include <string>
+#include <queue>
+#include <mutex>
 
 #include "DistrhoUI.hpp"
 #include "FileBrowserDialog.hpp"  // DPF cross-platform file browser API
@@ -55,8 +57,6 @@ private:
     bool              fPresetManagerOpened  = false;
     PmDialogMode      fPmDialogMode         = PmDialogMode::None;
     char              fPmNameBuffer[128]    = {};   // text input for Save As / Rename dialogs
-    std::string       fPmStatusMessage;             // transient feedback shown in the UI
-    // TODO: Use message box instead of transient messages
 
     // Buffered values for atomic state restoration from stateChanged() callbacks
     std::string fRestoredPresetType = "Factory";
@@ -103,6 +103,25 @@ private:
 
     // Poll native file dialog each frame; process result when dialog closes
     void _handleFileBrowserIdle();  // Should be called from onImGuiDisplay() to handle file browser state and results
+
+    // -------------------------------------------------------------------
+    // Message box stuff
+
+    // Definitions & states
+    std::queue<std::string> fMessageBoxQueue; // Queue of messages to be shown in message boxes
+    bool                    fRequestMessagePopup = false; // Trigger flag to indicate that a message box popup should be displayed
+    std::mutex              fMessageQueueMutex; // Mutex to protect access to the message box queue
+
+    // Poll message queue and show message box when needed.
+    void _handleMessageBoxIdle();   // Should be called from onImGuiDisplay().
+    inline void _showMessageBox(const std::string& message)
+    {
+        // Apply a mutex to avoid possible conflict
+        std::lock_guard<std::mutex> lock(fMessageQueueMutex);
+
+        fMessageBoxQueue.push(message);
+        fRequestMessagePopup = true;
+    }
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClassicReverbUI)
 };
