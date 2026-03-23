@@ -24,8 +24,9 @@ void ClassicReverbUI::_handleFileBrowserIdle()
             case FileBrowserAction::Import:
                 if (fPresetManager->importFromFile(selectedPath)) {
                     const Preset* imported = fPresetManager->currentPreset();
-                    const auto message = std::string("Imported: ")
-                                     + (imported ? imported->name : "");
+                    const auto message = std::string("Imported preset: ")
+                                     + (imported ? imported->name : "")
+                                     + "\nDon't forget to click 'Save As' to keep it!";
                     _showMessageBox(message);
                 } else {
                     _showMessageBox("Import failed: cannot read file.");
