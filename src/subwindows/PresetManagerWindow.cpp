@@ -293,6 +293,8 @@ void ClassicReverbUI::_drawPresetManager()
                 ImGui::OpenPopup("Delete Preset##PM");
             }
             ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Delete the current active user preset.");
             ImGui::SameLine();
 
             // 2) Rename
@@ -332,6 +334,8 @@ void ClassicReverbUI::_drawPresetManager()
                 }
                 ImGui::OpenPopup("Save Preset As##PM");
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Save current parameters as a new preset.");
 
             ImGui::SameLine(0.0f, kWSep);
 
@@ -351,6 +355,8 @@ void ClassicReverbUI::_drawPresetManager()
                     fFileBrowserAction = FileBrowserAction::Import;
                 }
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Import a preset from file.");
             ImGui::SameLine();
 
             // 6) Export
@@ -374,6 +380,8 @@ void ClassicReverbUI::_drawPresetManager()
                     fFileBrowserAction = FileBrowserAction::Export;
                 }
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Export current preset to file.");
             if (!fPresetManager->currentPreset()) ImGui::EndDisabled();
 
             // ════════════════════════════════════════════════════════════
