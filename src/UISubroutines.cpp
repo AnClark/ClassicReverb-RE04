@@ -7,6 +7,8 @@
 #include "../fonts/LiberationSans-Regular.hpp"
 #include "../fonts/CormorantFont.hpp"
 #include "src/Resources.hpp"    // For Dejavu Sans font (bundled with DGL)
+#include "../fonts/FontAwesome5.hpp"
+#include "../fonts/IconFontAwesome5.h"
 
 ImGuiKnobs_Mod::KnobScaleMarkStyle kScaleMarkStyle = {
     .outer_radius = 1.20f,
@@ -55,6 +57,15 @@ void ClassicReverbUI::_loadFonts()
 
     // ↓ Font #4: Dejavu Sans for ImGui menu and tooltip text (not used in the chassis board, so we can load a full charset)
     io.Fonts->AddFontFromMemoryTTF((void*)dpf_resources::dejavusans_ttf, dpf_resources::dejavusans_ttf_size, 14.5f * getScaleFactor(), &fc);
+
+    // ↓ Font #4 (merged): Font Awesome icons merged into the Dejavu Sans font above.
+    //            MergeMode = true causes glyphs to be merged into the previously added font (Font #4 Dejavu Sans)
+    //            rather than creating a new font entry. After this call there is still only Font #4 in the atlas,
+    //            and icons can be used anywhere Dejavu Sans is active without switching fonts.
+    static constexpr ImWchar kFontAwesomeRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    fc.MergeMode = true;
+    io.Fonts->AddFontFromMemoryCompressedTTF((void*)FontAwesomeTTF_compressed_data, FontAwesomeTTF_compressed_size, 14.5f * getScaleFactor(), &fc, kFontAwesomeRanges);
+    fc.MergeMode = false;
 
     io.Fonts->Build();
     io.FontDefault = io.Fonts->Fonts[4];
@@ -287,6 +298,7 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
         marks, mark_count, &kScaleMarkStyle, pivot_value))
     {
         setParameterValue(paramId, fParams[paramId]);
+        fPresetManager->markModified();
     }
 
     // NOTE: Putting ImGui::IsItemActivated() in ImGuiKnobs_Mod::Knob() will cause IsItemActivated() unavailable.

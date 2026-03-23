@@ -2,6 +2,7 @@
 
 #include "CenteredSeparatorText.hpp"
 #include "imgui-knobs.h"
+#include "HardwareButton.hpp"
 
 #include "config.h"
 
@@ -107,6 +108,16 @@ ClassicReverbUI::ClassicReverbUI()
     // Initialize parameters to default values (optional)
     std::memset(fParams, 0, sizeof(fParams));
 
+    // Initialize preset manager and load persisted user presets from disk
+    fPresetManager = new PresetManager(this);
+    const bool presetsLoaded = fPresetManager->loadUserPresetsFromDisk();
+    if (!presetsLoaded) {
+        // NOTE: _showMessageBox() can be used here because it pushes the message into a queue and doesn't require an active ImGui context at this point.
+        //       The message will be displayed as a popup when the UI is rendered.
+        //       @see _showMessageBox() and _handleMessageBoxIdle() in UI.h/UI.cpp
+        _showMessageBox("WARNING: could not load user presets from disk. Presets will not be saved.");
+    }
+
     // Load fonts for ImGui
     _loadFonts();
 
@@ -163,7 +174,7 @@ void ClassicReverbUI::onImGuiDisplay()
             ImGui::Dummy(ImVec2(2, 0));
             ImGui::SameLine();
 
-            if (_BeginSection("REVERBERATION", 90.0f * 3))        
+            if (_BeginSection("REVERBERATION", (90.0f - 4.0f) * 3))        
             {
                 // Add an extra left margin to the first knob so its leftmost scale mark doesn't get cut off.
                 ImGui::Dummy(ImVec2(12, 0));
@@ -184,7 +195,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
             ImGui::SameLine(0, 10);
 
-            if (_BeginSection("FILTERS", 90.0f * 2))
+            if (_BeginSection("FILTERS", (90.0f - 6.0f) * 2))
             {
                 // Add an extra left margin
                 ImGui::Dummy(ImVec2(2, 0));
@@ -201,7 +212,7 @@ void ClassicReverbUI::onImGuiDisplay()
 
             ImGui::SameLine(0, 10);
 
-            if (_BeginSection("OUTPUT", 80.0f * 3))        
+            if (_BeginSection("OUTPUT", (80.0f - 2.0f) * 3))        
             {
                 // Add an extra left margin
                 ImGui::Dummy(ImVec2(1, 0));
@@ -212,7 +223,7 @@ void ClassicReverbUI::onImGuiDisplay()
                          true,    // use_pivot: knob centre = 0 dB
                          0.0f);   // pivot_value
 
-                ImGui::SameLine(0, 20);
+                ImGui::SameLine(0, 20 - 5);
 
                 _addKnob(kParamMix, "MIX", kMixMarks, IM_ARRAYSIZE(kMixMarks));
 
@@ -223,7 +234,7 @@ void ClassicReverbUI::onImGuiDisplay()
                 _EndSection();
             }
 
-            ImGui::SameLine(0, 2);
+            ImGui::SameLine(0, 10.0f);
 
             // Right panel (Logo, config buttons, etc.)
             {
@@ -234,7 +245,48 @@ void ClassicReverbUI::onImGuiDisplay()
 
                 _drawKjaerhusLogo(ImVec2(100, 50));
 
-                ImGui::Dummy(ImVec2(0,23));     // TODO: This is a placeholder. I will add extra controls here in future.
+#if 1   // Extra controls.
+        // TODO: Make Preset Manager an optional feature
+                // Preset button — label shows the current preset name
+                {
+                    ImGui::BeginGroup();
+                    ImGui::AlignTextToFramePadding();
+
+                    ImGui::Dummy(ImVec2(2, 0));
+                    ImGui::SameLine(0.0f, 0.0f);
+
+                    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);   // Use the smaller font for the preset button
+
+                    {
+                        const Preset* curPreset = fPresetManager->currentPreset();
+                        std::string   btnLabel;
+                        if (curPreset) {
+                            btnLabel = curPreset->name;
+                            if (fPresetManager->isModified()) btnLabel += " *";
+                        } else {
+                            btnLabel = "Select Preset...";
+                        }
+                        btnLabel += "##Preset";
+                        if (ImGuiExt::HardwareButton(btnLabel.c_str(),
+                                           ImVec2(100 - 3, ImGui::GetFrameHeight()),
+                                           ImVec4(0x2f / 255.0f, 0x4d / 255.0f, 0x44 / 255.0f, 1.0f)))
+                        {
+                            fPresetManagerOpened = !fPresetManagerOpened;
+                        }
+                    }
+                    ImGui::SameLine(0.0f, 5.0f);
+                    ImGui::Text("PRESET");
+
+                    ImGui::PopFont();
+
+                    ImGui::EndGroup();
+                }
+
+                ImGui::Dummy(ImVec2(0, 0.5f));
+
+#else   // No extra controls, just a placeholder
+                ImGui::Dummy(ImVec2(0, 23));     // TODO: This is a placeholder. I will add extra controls here in future.
+#endif
 
                 _drawPluginName();
 
@@ -268,7 +320,7 @@ void ClassicReverbUI::onImGuiDisplay()
             {
                 ImGui::Columns(2, "AboutColumns", false);
                 ImGui::SetColumnWidth(0, 400.0f - 5.0f);
-                ImGui::SetColumnWidth(1, 420.0f);
+                ImGui::SetColumnWidth(1, 420.0f - 15.0f);
 
                 {
                     const String versionStr = String("Classic Reverb RE-04") + "  |  Version " +
@@ -335,6 +387,31 @@ void ClassicReverbUI::onImGuiDisplay()
 
     // Update the OS mouse cursor based on the current ImGui mouse cursor state
     _UpdateMouseCursor();
+
+    // Poll the native file browser dialog (Import/Export). Must be called every frame.
+    _handleFileBrowserIdle();
+
+    // Draw the preset manager overlay (renders nothing when fPresetManagerOpened == false)
+    _drawPresetManager();
+
+    // Handle message box display
+    _handleMessageBoxIdle();
+}
+
+// -----------------------------------------------------------------------
+// State callbacks
+
+void ClassicReverbUI::stateChanged(const char* key, const char* value)
+{
+    // Buffer each restored value; rebuild state after all three arrive.
+    if (std::strcmp(key, STATE_PRESET_TYPE) == 0)
+        fRestoredPresetType = value;
+    else if (std::strcmp(key, STATE_PRESET_NAME) == 0)
+        fRestoredPresetName = value;
+    else if (std::strcmp(key, STATE_PRESET_MODIFIED) == 0)
+        fRestoredModified = (std::strcmp(value, "true") == 0);
+
+    _applyRestoredPresetState();
 }
 
 // -----------------------------------------------------------------------
