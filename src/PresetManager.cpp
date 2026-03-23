@@ -378,6 +378,12 @@ void PresetManager::restoreFromState(const std::string& typeStr,
         for (int i = 0; i < (int)fUserPresets.size(); ++i) {
             if (fUserPresets[i].name == nameStr) { fCurrentIndex = i; break; }
         }
+        // If the user preset no longer exists (e.g. deleted after state was saved),
+        // fall back to Factory / -1 (= Default) so the plugin is in a defined state.
+        if (fCurrentIndex == -1) {
+            fCurrentType  = PresetType::Factory;
+            fModified     = false;
+        }
     }
     // For Imported, index stays -1 (the name is in fImportedPreset which we can't restore)
 
