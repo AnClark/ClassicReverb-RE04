@@ -421,38 +421,38 @@ std::string PresetManager::_getUserDataDir() const
         std::string result(static_cast<size_t>(len - 1), '\0');
         WideCharToMultiByte(CP_UTF8, 0, wpath, -1, &result[0], len, nullptr, nullptr);
         CoTaskMemFree(wpath);
-        return result + "\\ClassicReverbRE04";
+        return result + "\\" CLASSIC_REVERB_APPDATA_DIR_NAME;
     }
     // Fallback
     const char* appdata = getenv("APPDATA");
-    return std::string(appdata ? appdata : ".") + "\\ClassicReverbRE04";
+    return std::string(appdata ? appdata : ".") + "\\" CLASSIC_REVERB_APPDATA_DIR_NAME;
 #elif defined(__APPLE__)
     const char* home = getenv("HOME");
     if (!home) {
         struct passwd* pw = getpwuid(getuid());
         home = pw ? pw->pw_dir : nullptr;
     }
-    return std::string(home ? home : ".") + "/Library/Application Support/ClassicReverbRE04";
+    return std::string(home ? home : ".") + "/Library/Application Support/" CLASSIC_REVERB_APPDATA_DIR_NAME;
 #else
     // Linux / other POSIX
     const char* xdgData = getenv("XDG_DATA_HOME");
     if (xdgData && xdgData[0] != '\0')
-        return std::string(xdgData) + "/ClassicReverbRE04";
+        return std::string(xdgData) + "/" CLASSIC_REVERB_APPDATA_DIR_NAME;
     const char* home = getenv("HOME");
     if (!home) {
         struct passwd* pw = getpwuid(getuid());
         home = pw ? pw->pw_dir : nullptr;
     }
-    return std::string(home ? home : ".") + "/.local/share/ClassicReverbRE04";
+    return std::string(home ? home : ".") + "/.local/share/" CLASSIC_REVERB_APPDATA_DIR_NAME;
 #endif
 }
 
 std::string PresetManager::_getUserPresetsFilePath() const
 {
 #if defined(_WIN32)
-    return _getUserDataDir() + "\\presets.json";
+    return _getUserDataDir() + "\\" CLASSIC_REVERB_PRESET_FILE_NAME;
 #else
-    return _getUserDataDir() + "/presets.json";
+    return _getUserDataDir() + "/" CLASSIC_REVERB_PRESET_FILE_NAME;
 #endif
 }
 
