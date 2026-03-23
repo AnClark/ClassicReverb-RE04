@@ -110,6 +110,7 @@ bool PresetManager::saveAsNew(const std::string& name)
     Preset p  = snapshotFromUI();
     p.name    = name;
     fUserPresets.push_back(p);
+
     const bool ok = saveUserPresetsToDisk();
     syncPluginState(PresetType::User, (int)fUserPresets.size() - 1, false);
     return ok;
@@ -119,12 +120,13 @@ bool PresetManager::overwriteCurrent()
 {
     if (fCurrentType != PresetType::User)
         return false;
-
     DISTRHO_SAFE_ASSERT_RETURN(fCurrentIndex >= 0 && fCurrentIndex < (int)fUserPresets.size(), false)
+
     const std::string name = fUserPresets[fCurrentIndex].name;
     Preset p = snapshotFromUI();
     p.name   = name;
     fUserPresets[fCurrentIndex] = p;
+
     const bool ok = saveUserPresetsToDisk();
     syncPluginState(false);
     return ok;
@@ -132,8 +134,10 @@ bool PresetManager::overwriteCurrent()
 
 bool PresetManager::deleteCurrent()
 {
-    if (fCurrentType != PresetType::User) return false;
+    if (fCurrentType != PresetType::User)
+        return false;
     DISTRHO_SAFE_ASSERT_RETURN(fCurrentIndex >= 0 && fCurrentIndex < (int)fUserPresets.size(), false)
+
     fUserPresets.erase(fUserPresets.begin() + fCurrentIndex);
     PresetType newType;
     int        newIndex;
@@ -144,6 +148,7 @@ bool PresetManager::deleteCurrent()
         newType  = PresetType::User;
         newIndex = std::min(fCurrentIndex, (int)fUserPresets.size() - 1);
     }
+
     const bool ok = saveUserPresetsToDisk();
     syncPluginState(newType, newIndex, false);
     return ok;
@@ -151,9 +156,12 @@ bool PresetManager::deleteCurrent()
 
 bool PresetManager::renameCurrent(const std::string& newName)
 {
-    if (fCurrentType != PresetType::User) return false;
+    if (fCurrentType != PresetType::User)
+        return false;
     DISTRHO_SAFE_ASSERT_RETURN(fCurrentIndex >= 0 && fCurrentIndex < (int)fUserPresets.size(), false)
+
     fUserPresets[fCurrentIndex].name = newName;
+
     const bool ok = saveUserPresetsToDisk();
     syncPluginState(fModified);
     return ok;
@@ -195,7 +203,9 @@ bool PresetManager::importFromFile(const std::string& filePath)
 bool PresetManager::exportCurrentToFile(const std::string& filePath)
 {
     const Preset* p = currentPreset();
-    if (!p) return false;
+    if (!p)
+        return false;
+
     try {
         json j;
         j["name"]      = p->name;
@@ -221,6 +231,7 @@ bool PresetManager::commitImported(const std::string& name)
     Preset p = fImportedPreset;
     p.name   = name;
     fUserPresets.push_back(p);
+
     const bool ok = saveUserPresetsToDisk();
     syncPluginState(PresetType::User, (int)fUserPresets.size() - 1, false);
     return ok;
@@ -257,7 +268,9 @@ bool PresetManager::loadUserPresetsFromDisk()
 
 bool PresetManager::saveUserPresetsToDisk()
 {
-    if (!_ensureDataDirExists()) return false;
+    if (!_ensureDataDirExists())
+        return false;
+
     const std::string path = _getUserPresetsFilePath();
     try {
         json arr = json::array();
@@ -327,16 +340,19 @@ void PresetManager::syncPluginState(bool modified)
 {
     fModified = modified;
     DISTRHO_SAFE_ASSERT_RETURN(fUI != nullptr, )
+
     const Preset* p      = currentPreset();
     const char*   name   = p ? p->name.c_str() : "";
     const char*   mod    = fModified ? "true" : "false";
     const char*   typeStr;
+
     switch (fCurrentType) {
     case PresetType::Factory:  typeStr = "Factory";  break;
     case PresetType::User:     typeStr = "User";     break;
     case PresetType::Imported: typeStr = "Imported"; break;
     default:                   typeStr = "Factory";  break;
     }
+
     fUI->setState(STATE_PRESET_NAME,     name);
     fUI->setState(STATE_PRESET_MODIFIED, mod);
     fUI->setState(STATE_PRESET_TYPE,     typeStr);
