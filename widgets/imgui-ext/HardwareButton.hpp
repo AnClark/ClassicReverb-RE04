@@ -14,6 +14,11 @@
 #include <imgui_internal.h>
 #include <cmath>
 
+// Define HARDWARE_BUTTON_TEXT_ELLIPSIS to enable text truncation with "..."
+// when the label is wider than the button face.
+// Comment out to restore the original (unconstrained, potentially overflowing) behavior.
+#define HARDWARE_BUTTON_TEXT_ELLIPSIS
+
 namespace ImGuiExt {
 
 // Draw a hardware-style 3D push button.
@@ -162,6 +167,45 @@ static inline bool HardwareButton(
         const char *text_end = ImGui::FindRenderedTextEnd(label);
         ImVec2 text_sz = draw_font->CalcTextSizeA(fs, FLT_MAX, 0.0f, label, text_end);
 
+#if defined(HARDWARE_BUTTON_TEXT_ELLIPSIS)
+        // ── Ellipsis truncation ───────────────────────────────────────────────
+        // Leave a small margin inside the rounded corners on each side.
+        constexpr float kTextPadX = 4.0f;
+        float avail_w = size.x - kTextPadX * 2.0f;
+
+        const char *draw_end    = text_end;  // end of the visible label portion
+        float       clipped_w   = text_sz.x; // pixel width of the visible label portion
+        float       ellipsis_w  = 0.0f;
+        bool        has_ellipsis = false;
+
+        if (text_sz.x > avail_w) {
+            has_ellipsis = true;
+            ellipsis_w   = draw_font->CalcTextSizeA(fs, FLT_MAX, 0.0f, "...", nullptr).x;
+            // CalcTextSizeA with max_width stops at the last glyph that still fits;
+            // draw_end is set to the byte just past that glyph.
+            float fit_w  = ImMax(0.0f, avail_w - ellipsis_w);
+            clipped_w    = draw_font->CalcTextSizeA(fs, fit_w, 0.0f, label, text_end, &draw_end).x;
+        }
+
+        // Center the (possibly truncated + "...") text on the button face.
+        float total_w = clipped_w + ellipsis_w;
+        float tx = bmin.x + (size.x - total_w) * 0.5f;
+        float ty = bmin.y + (size.y - text_sz.y) * 0.5f;
+
+        // Shadow pass
+        dl->AddText(draw_font, fs, { tx + 1.0f, ty + 1.0f },
+                    IM_COL32(0, 0, 0, 70), label, draw_end);
+        if (has_ellipsis)
+            dl->AddText(draw_font, fs, { tx + clipped_w + 1.0f, ty + 1.0f },
+                        IM_COL32(0, 0, 0, 70), "...");
+        // Main text pass
+        dl->AddText(draw_font, fs, { tx, ty },
+                    IM_COL32(210, 225, 220, 255), label, draw_end);
+        if (has_ellipsis)
+            dl->AddText(draw_font, fs, { tx + clipped_w, ty },
+                        IM_COL32(210, 225, 220, 255), "...");
+
+#else   // original behavior — text may overflow beyond the button edges
         // Center on button face; include shift so text moves with body on press.
         float tx = bmin.x + (size.x - text_sz.x) * 0.5f;
         float ty = bmin.y + (size.y - text_sz.y) * 0.5f;
@@ -172,6 +216,7 @@ static inline bool HardwareButton(
         // Main text — light to contrast the dark body
         dl->AddText(draw_font, fs, { tx, ty },
                     IM_COL32(210, 225, 220, 255), label, text_end);
+#endif
     }
 
     // ── 6. Mouse cursor ───────────────────────────────────────────────────────
