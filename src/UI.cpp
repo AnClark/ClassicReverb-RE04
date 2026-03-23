@@ -110,7 +110,13 @@ ClassicReverbUI::ClassicReverbUI()
 
     // Initialize preset manager and load persisted user presets from disk
     fPresetManager = new PresetManager(this);
-    fPresetManager->loadUserPresetsFromDisk();
+    const bool presetsLoaded = fPresetManager->loadUserPresetsFromDisk();
+    if (!presetsLoaded) {
+        // NOTE: _showMessageBox() can be used here because it pushes the message into a queue and doesn't require an active ImGui context at this point.
+        //       The message will be displayed as a popup when the UI is rendered.
+        //       @see _showMessageBox() and _handleMessageBoxIdle() in UI.h/UI.cpp
+        _showMessageBox("WARNING: could not load user presets from disk. Presets will not be saved.");
+    }
 
     // Load fonts for ImGui
     _loadFonts();
