@@ -413,14 +413,18 @@ void ClassicReverbUI::_drawPresetManager()
                             for (int i = 0; i < fPresetManager->userPresetCount(); ++i) {
                                 if (fPresetManager->userPreset(i).name == name) {
                                     fPresetManager->selectUserPreset(i);
-                                    fPresetManager->overwriteCurrent();
+                                    if (fPresetManager->overwriteCurrent())
+                                        _showMessageBox("Preset overwritten: " + name);
+                                    else
+                                        _showMessageBox("Error: could not save preset to disk.");
                                     break;
                                 }
                             }
-                            _showMessageBox("Preset overwritten: " + name);
                         } else {
-                            fPresetManager->saveAsNew(name);
-                            _showMessageBox("Saved: " + name);
+                            if (fPresetManager->saveAsNew(name))
+                                _showMessageBox("Saved: " + name);
+                            else
+                                _showMessageBox("Error: could not save preset to disk.");
                         }
                         fPmDialogMode = PmDialogMode::None;
                         ImGui::CloseCurrentPopup();
@@ -449,8 +453,10 @@ void ClassicReverbUI::_drawPresetManager()
                 if (doRename || ImGui::Button("Rename##rn", ImVec2(80.0f, 0.0f))) {
                     const std::string name(fPmNameBuffer);
                     if (!name.empty()) {
-                        fPresetManager->renameCurrent(name);
-                        _showMessageBox("Renamed to: " + name);
+                        if (fPresetManager->renameCurrent(name))
+                            _showMessageBox("Renamed to: " + name);
+                        else
+                            _showMessageBox("Error: could not save preset to disk.");
                         fPmDialogMode = PmDialogMode::None;
                         ImGui::CloseCurrentPopup();
                     }
@@ -474,8 +480,10 @@ void ClassicReverbUI::_drawPresetManager()
                     ImGui::Text("Overwrite \"%s\" with current parameters?", cur->name.c_str());
                 ImGui::Spacing();
                 if (ImGui::Button("Overwrite##upd", ImVec2(80.0f, 0.0f))) {
-                    fPresetManager->overwriteCurrent();
-                    _showMessageBox("Preset " + cur->name + " updated.");
+                    if (fPresetManager->overwriteCurrent())
+                        _showMessageBox("Preset " + cur->name + " updated.");
+                    else
+                        _showMessageBox("Error: could not save preset to disk.");
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
@@ -499,8 +507,10 @@ void ClassicReverbUI::_drawPresetManager()
                 ImGui::Spacing();
                 ImGui::PushStyleColor(ImGuiCol_Button, kColDanger);
                 if (ImGui::Button("Delete##dl", ImVec2(70.0f, 0.0f))) {
-                    fPresetManager->deleteCurrent();
-                    _showMessageBox("Preset deleted.");
+                    if (fPresetManager->deleteCurrent())
+                        _showMessageBox("Preset deleted.");
+                    else
+                        _showMessageBox("Error: could not save preset to disk.");
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }

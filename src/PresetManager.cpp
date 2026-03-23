@@ -110,9 +110,9 @@ bool PresetManager::saveAsNew(const std::string& name)
     Preset p  = snapshotFromUI();
     p.name    = name;
     fUserPresets.push_back(p);
-    saveUserPresetsToDisk();
+    const bool ok = saveUserPresetsToDisk();
     syncPluginState(PresetType::User, (int)fUserPresets.size() - 1, false);
-    return true;
+    return ok;
 }
 
 bool PresetManager::overwriteCurrent()
@@ -125,9 +125,9 @@ bool PresetManager::overwriteCurrent()
     Preset p = snapshotFromUI();
     p.name   = name;
     fUserPresets[fCurrentIndex] = p;
-    saveUserPresetsToDisk();
+    const bool ok = saveUserPresetsToDisk();
     syncPluginState(false);
-    return true;
+    return ok;
 }
 
 bool PresetManager::deleteCurrent()
@@ -144,9 +144,9 @@ bool PresetManager::deleteCurrent()
         newType  = PresetType::User;
         newIndex = std::min(fCurrentIndex, (int)fUserPresets.size() - 1);
     }
-    saveUserPresetsToDisk();
+    const bool ok = saveUserPresetsToDisk();
     syncPluginState(newType, newIndex, false);
-    return true;
+    return ok;
 }
 
 bool PresetManager::renameCurrent(const std::string& newName)
@@ -154,9 +154,9 @@ bool PresetManager::renameCurrent(const std::string& newName)
     if (fCurrentType != PresetType::User) return false;
     DISTRHO_SAFE_ASSERT_RETURN(fCurrentIndex >= 0 && fCurrentIndex < (int)fUserPresets.size(), false)
     fUserPresets[fCurrentIndex].name = newName;
-    saveUserPresetsToDisk();
+    const bool ok = saveUserPresetsToDisk();
     syncPluginState(fModified);
-    return true;
+    return ok;
 }
 
 // ── Import / Export ────────────────────────────────────────────────────────
@@ -221,9 +221,9 @@ bool PresetManager::commitImported(const std::string& name)
     Preset p = fImportedPreset;
     p.name   = name;
     fUserPresets.push_back(p);
-    saveUserPresetsToDisk();
+    const bool ok = saveUserPresetsToDisk();
     syncPluginState(PresetType::User, (int)fUserPresets.size() - 1, false);
-    return true;
+    return ok;
 }
 
 // ── Disk I/O ───────────────────────────────────────────────────────────────
