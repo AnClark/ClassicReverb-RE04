@@ -11,6 +11,8 @@
 #include "imgui.h"
 #include "FileBrowserDialog.hpp"  // DPF cross-platform file browser API
 
+#include "../fonts/IconFontAwesome5.h"    // For icon glyphs like "X" (close), pencil (edit), floppy disk (save), etc.
+
 #include <cstring>
 #include <string>
 
@@ -198,7 +200,7 @@ void ClassicReverbUI::_drawPresetManager()
                                  + ImGui::GetContentRegionAvail().x - 22.0f);
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
-                if (ImGui::Button("X##pmclose", ImVec2(22.0f, 0.0f)))
+                if (ImGui::Button(ICON_FA_TIMES_CIRCLE "##pmclose", ImVec2(22.0f, 0.0f)))
                     fPresetManagerOpened = false;
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Close Preset Manager");
