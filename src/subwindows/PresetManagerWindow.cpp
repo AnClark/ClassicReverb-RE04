@@ -93,8 +93,7 @@ void ClassicReverbUI::_drawPresetManager()
         // Button height for preset buttons
         constexpr float kBtnH  = 19.0f;
         // Height of the action buttons row at the bottom of the user panel
-        constexpr float kActH  = 19.0f;
-        const float actionRowH = kActH + ImGui::GetStyle().ItemSpacing.y;
+        constexpr float kActH  = 16.0f + 2.0f;
 
         // ── Column widths ────────────────────────────────────────────────
         const float leftW  = availW * 0.38f;
@@ -107,6 +106,7 @@ void ClassicReverbUI::_drawPresetManager()
         if (ImGui::BeginChild("##FactoryCol", ImVec2(leftW, availH), true,
                               ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
         {
+            ImGui::AlignTextToFramePadding();
             ImGui::TextDisabled("FACTORY PRESETS");
             ImGui::Separator();
 
@@ -194,17 +194,135 @@ void ClassicReverbUI::_drawPresetManager()
             // Title + close button on the same line.
             // Use FramePadding.y = 0 so the button is exactly text-line height,
             // matching the "FACTORY PRESETS" header row on the left.
+            ImGui::AlignTextToFramePadding();
             ImGui::TextDisabled("USER PRESETS");
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()
-                                 + ImGui::GetContentRegionAvail().x - 22.0f);
+            // NOTE: For convenience, I use hard-coded spacing here.
+            //       FIXME: Shall I compute the spacing from style metrics instead? 
+            ImGui::SameLine(0, 130.0f); 
+
+            // ── Action buttons (At the same line of the title) ─────────────────────────────
             {
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
-                if (ImGui::Button(ICON_FA_TIMES_CIRCLE "##pmclose", ImVec2(22.0f, 0.0f)))
+                constexpr float kWDel    = 36.0f;
+                constexpr float kWRen    = 36.0f;
+                constexpr float kWUpd    = 36.0f;
+                constexpr float kWSaveAs = 36.0f;
+                constexpr float kWSep    = 8.0f;
+                constexpr float kWImp    = 36.0f;
+                constexpr float kWExp    = 36.0f;
+
+                const bool isUserPresetActive = (fPresetManager->currentType() == PresetType::User &&
+                                            fPresetManager->currentIndex() >= 0);
+
+                // Preset context buttons (only active when a user preset is selected)
+                if (!isUserPresetActive) ImGui::BeginDisabled();
+
+                // 1) Delete
+                ImGui::PushStyleColor(ImGuiCol_Button, kColDanger);
+                if (ImGui::Button(ICON_FA_TRASH "##Delete", ImVec2(kWDel, kActH))) {
+                    fPmDialogMode = PmDialogMode::ConfirmDelete;
+                    ImGui::OpenPopup("Delete Preset##PM");
+                }
+                ImGui::PopStyleColor();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip(isUserPresetActive ? "Delete the current active user preset." : "Delete the current active user preset.\nTo delete a preset, load it first.");
+                ImGui::SameLine();
+
+                // 2) Rename
+                if (ImGui::Button(ICON_FA_PENCIL_ALT "##Rename", ImVec2(kWRen, kActH))) {
+                    fPmDialogMode = PmDialogMode::Rename;
+                    const Preset* cur = fPresetManager->currentPreset();
+                    if (cur) {
+                        std::strncpy(fPmNameBuffer, cur->name.c_str(), sizeof(fPmNameBuffer) - 1);
+                        fPmNameBuffer[sizeof(fPmNameBuffer) - 1] = '\0';
+                    }
+                    ImGui::OpenPopup("Rename Preset##PM");
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip(isUserPresetActive ? "Rename the current active user preset." : "Rename the current active user preset.\nTo rename a preset, load it first.");
+                ImGui::SameLine();
+
+                // 3) Update (overwrite current preset with current params)
+                if (ImGui::Button(ICON_FA_SYNC "##Update", ImVec2(kWUpd, kActH))) {
+                    fPmDialogMode = PmDialogMode::ConfirmUpdate;
+                    ImGui::OpenPopup("Update Preset##PM");
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip(isUserPresetActive ? "Overwrite the current user preset with current parameters." : "Overwrite the current user preset with current parameters.\nTo update a preset, load it first.");
+
+                if (!isUserPresetActive) ImGui::EndDisabled();
+                ImGui::SameLine();
+
+                // 4) Save As
+                if (ImGui::Button(ICON_FA_SAVE "##SaveAs", ImVec2(kWSaveAs, kActH))) {
+                    fPmDialogMode = PmDialogMode::SaveNew;
+                    const Preset* cur = fPresetManager->currentPreset();
+                    if (cur) {
+                        std::strncpy(fPmNameBuffer, cur->name.c_str(), sizeof(fPmNameBuffer) - 1);
+                        fPmNameBuffer[sizeof(fPmNameBuffer) - 1] = '\0';
+                    } else {
+                        std::memset(fPmNameBuffer, 0, sizeof(fPmNameBuffer));
+                    }
+                    ImGui::OpenPopup("Save Preset As##PM");
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Save current parameters as a new preset.");
+
+                ImGui::SameLine(0.0f, kWSep);
+
+                // 5) Import
+                if (ImGui::Button(ICON_FA_FILE_IMPORT "##Import", ImVec2(kWImp, kActH))) {
+                    // Open a native OS file-open dialog (non-blocking).
+                    // The result is processed every frame in _handleFileBrowserIdle().
+                    if (fFileBrowserHandle == nullptr) {
+                        DGL_NAMESPACE::FileBrowserOptions opts;
+                        opts.saving = false;
+                        opts.title  = "Import Preset";
+                        fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
+                            true,
+                            getWindow().getNativeWindowHandle(),
+                            getScaleFactor(),
+                            opts);
+                        fFileBrowserAction = FileBrowserAction::Import;
+                    }
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Import a preset from file.");
+                ImGui::SameLine();
+
+                // 6) Export
+                if (!fPresetManager->currentPreset()) ImGui::BeginDisabled();
+                if (ImGui::Button(ICON_FA_FILE_EXPORT "##Export", ImVec2(kWExp, kActH))) {
+                    // Pre-fill the default filename from the current preset name.
+                    const Preset* cur = fPresetManager->currentPreset();
+                    std::string defaultName = cur ? cur->name + ".json" : "preset.json";
+
+                    // Open a native OS file-save dialog (non-blocking).
+                    if (fFileBrowserHandle == nullptr) {
+                        DGL_NAMESPACE::FileBrowserOptions opts;
+                        opts.saving      = true;
+                        opts.title       = "Export Preset";
+                        opts.defaultName = defaultName.c_str();
+                        fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
+                            true,
+                            getWindow().getNativeWindowHandle(),
+                            getScaleFactor(),
+                            opts);
+                        fFileBrowserAction = FileBrowserAction::Export;
+                    }
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip(fPresetManager->currentPreset() ? "Export current preset to file." : "Export current preset to file.\nTo export a preset, load it first.");
+                if (!fPresetManager->currentPreset()) ImGui::EndDisabled();
+            }
+
+            ImGui::SameLine(0, 10.0f);
+            {
+                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
+                if (ImGui::Button(ICON_FA_TIMES "##pmclose", ImVec2(28.0f, kActH)))
                     fPresetManagerOpened = false;
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Close Preset Manager");
-                ImGui::PopStyleVar();
+                //ImGui::PopStyleVar();
             }
             ImGui::Separator();
 
@@ -213,7 +331,6 @@ void ClassicReverbUI::_drawPresetManager()
 
             // Height available for the preset list (below header, above action row + status)
             const float listH = ImGui::GetContentRegionAvail().y
-                              - actionRowH
                               - ImGui::GetStyle().ItemSpacing.y;
 
             if (ImGui::BeginChild("##UserList", ImVec2(0.0f, listH), false))
@@ -264,125 +381,6 @@ void ClassicReverbUI::_drawPresetManager()
                 }
             }
             ImGui::EndChild(); // UserList
-
-            // ── Action buttons (right-aligned) ─────────────────────────────
-            constexpr float kWDel    = 46.0f;
-            constexpr float kWRen    = 54.0f;
-            constexpr float kWUpd    = 50.0f;
-            constexpr float kWSaveAs = 56.0f;
-            constexpr float kWSep    = 8.0f;
-            constexpr float kWImp    = 52.0f;
-            constexpr float kWExp    = 52.0f;
-
-            const float totalW = kWDel + gap + kWRen + gap + kWUpd + gap + kWSaveAs
-                               + kWSep + kWImp + gap + kWExp;
-
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()
-                                 + ImGui::GetContentRegionAvail().x - totalW);
-
-            const bool isUserPresetActive = (fPresetManager->currentType() == PresetType::User &&
-                                        fPresetManager->currentIndex() >= 0);
-
-            // Preset context buttons (only active when a user preset is selected)
-            if (!isUserPresetActive) ImGui::BeginDisabled();
-
-            // 1) Delete
-            ImGui::PushStyleColor(ImGuiCol_Button, kColDanger);
-            if (ImGui::Button("Delete", ImVec2(kWDel, kActH))) {
-                fPmDialogMode = PmDialogMode::ConfirmDelete;
-                ImGui::OpenPopup("Delete Preset##PM");
-            }
-            ImGui::PopStyleColor();
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Delete the current active user preset.");
-            ImGui::SameLine();
-
-            // 2) Rename
-            if (ImGui::Button("Rename", ImVec2(kWRen, kActH))) {
-                fPmDialogMode = PmDialogMode::Rename;
-                const Preset* cur = fPresetManager->currentPreset();
-                if (cur) {
-                    std::strncpy(fPmNameBuffer, cur->name.c_str(), sizeof(fPmNameBuffer) - 1);
-                    fPmNameBuffer[sizeof(fPmNameBuffer) - 1] = '\0';
-                }
-                ImGui::OpenPopup("Rename Preset##PM");
-            }
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Rename the current active user preset.");
-            ImGui::SameLine();
-
-            // 3) Update (overwrite current preset with current params)
-            if (ImGui::Button("Update", ImVec2(kWUpd, kActH))) {
-                fPmDialogMode = PmDialogMode::ConfirmUpdate;
-                ImGui::OpenPopup("Update Preset##PM");
-            }
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Overwrite the current user preset with current parameters.");
-
-            if (!isUserPresetActive) ImGui::EndDisabled();
-            ImGui::SameLine();
-
-            // 4) Save As
-            if (ImGui::Button("Save As", ImVec2(kWSaveAs, kActH))) {
-                fPmDialogMode = PmDialogMode::SaveNew;
-                const Preset* cur = fPresetManager->currentPreset();
-                if (cur) {
-                    std::strncpy(fPmNameBuffer, cur->name.c_str(), sizeof(fPmNameBuffer) - 1);
-                    fPmNameBuffer[sizeof(fPmNameBuffer) - 1] = '\0';
-                } else {
-                    std::memset(fPmNameBuffer, 0, sizeof(fPmNameBuffer));
-                }
-                ImGui::OpenPopup("Save Preset As##PM");
-            }
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Save current parameters as a new preset.");
-
-            ImGui::SameLine(0.0f, kWSep);
-
-            // 5) Import
-            if (ImGui::Button("Import", ImVec2(kWImp, kActH))) {
-                // Open a native OS file-open dialog (non-blocking).
-                // The result is processed every frame in _handleFileBrowserIdle().
-                if (fFileBrowserHandle == nullptr) {
-                    DGL_NAMESPACE::FileBrowserOptions opts;
-                    opts.saving = false;
-                    opts.title  = "Import Preset";
-                    fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
-                        true,
-                        getWindow().getNativeWindowHandle(),
-                        getScaleFactor(),
-                        opts);
-                    fFileBrowserAction = FileBrowserAction::Import;
-                }
-            }
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Import a preset from file.");
-            ImGui::SameLine();
-
-            // 6) Export
-            if (!fPresetManager->currentPreset()) ImGui::BeginDisabled();
-            if (ImGui::Button("Export", ImVec2(kWExp, kActH))) {
-                // Pre-fill the default filename from the current preset name.
-                const Preset* cur = fPresetManager->currentPreset();
-                std::string defaultName = cur ? cur->name + ".json" : "preset.json";
-
-                // Open a native OS file-save dialog (non-blocking).
-                if (fFileBrowserHandle == nullptr) {
-                    DGL_NAMESPACE::FileBrowserOptions opts;
-                    opts.saving      = true;
-                    opts.title       = "Export Preset";
-                    opts.defaultName = defaultName.c_str();
-                    fFileBrowserHandle = DGL_NAMESPACE::fileBrowserCreate(
-                        true,
-                        getWindow().getNativeWindowHandle(),
-                        getScaleFactor(),
-                        opts);
-                    fFileBrowserAction = FileBrowserAction::Export;
-                }
-            }
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Export current preset to file.");
-            if (!fPresetManager->currentPreset()) ImGui::EndDisabled();
 
             // ════════════════════════════════════════════════════════════
             // Modal popups centred within the overlay window
