@@ -352,7 +352,7 @@ void ClassicReverbUI::_drawPresetManager()
                         ImGui::PushStyleColor(ImGuiCol_Button,        kColSelected);
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kColSelectedHover);
                     }
-                    if (ImGui::Button(p.name.c_str(), ImVec2(btnW, kBtnH))) {
+                    if (ImGui::Button(p.getUniqueButtonID().c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectUserPreset(i);
                         fPresetManagerOpened = false;
                     }
@@ -371,7 +371,7 @@ void ClassicReverbUI::_drawPresetManager()
                                           impSel ? kColImportedHover : kColImported);
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kColImportedHover);
                     const Preset* imp = fPresetManager->importedPreset();
-                    if (ImGui::Button(imp->name.c_str(), ImVec2(btnW, kBtnH))) {
+                    if (ImGui::Button(imp->getUniqueButtonID().c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectImportedPreset();
                         fPresetManagerOpened = false;
                     }

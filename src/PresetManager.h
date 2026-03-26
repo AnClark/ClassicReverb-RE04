@@ -29,6 +29,18 @@ struct Preset
     float earlyRef  = kParamRanges[kParamEarlyRef].def;
     float mix       = kParamRanges[kParamMix].def;
     float level     = kParamRanges[kParamLevel].def;
+
+    inline std::string getUniqueButtonID() const {
+        // Generate a unique ID for ImGui buttons based on the preset name.
+        // This is necessary because ImGui buttons with the same label would
+        // otherwise share state (e.g., hover, active), which we don't want.
+        //
+        // We don't allow duplicate names in the user presets, but users may
+        // do nasty things with the config file, and imported preset may have
+        // the same name as an existing preset, so we append a unique suffix
+        // based on the pointer value.
+        return name + "##" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
+    }
 };
 
 // ── PresetManager ────────────────────────────────────────────────────────────
