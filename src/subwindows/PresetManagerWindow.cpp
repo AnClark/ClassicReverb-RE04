@@ -352,7 +352,7 @@ void ClassicReverbUI::_drawPresetManager()
                         ImGui::PushStyleColor(ImGuiCol_Button,        kColSelected);
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kColSelectedHover);
                     }
-                    if (ImGui::Button(p.name.c_str(), ImVec2(btnW, kBtnH))) {
+                    if (ImGui::Button(p.getUniqueButtonID().c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectUserPreset(i);
                         fPresetManagerOpened = false;
                     }
@@ -371,7 +371,7 @@ void ClassicReverbUI::_drawPresetManager()
                                           impSel ? kColImportedHover : kColImported);
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kColImportedHover);
                     const Preset* imp = fPresetManager->importedPreset();
-                    if (ImGui::Button(imp->name.c_str(), ImVec2(btnW, kBtnH))) {
+                    if (ImGui::Button(imp->getUniqueButtonID().c_str(), ImVec2(btnW, kBtnH))) {
                         fPresetManager->selectImportedPreset();
                         fPresetManagerOpened = false;
                     }
@@ -455,8 +455,19 @@ void ClassicReverbUI::_drawPresetManager()
                 bool doRename = ImGui::InputText("##PMRenameName", fPmNameBuffer,
                                                  sizeof(fPmNameBuffer),
                                                  ImGuiInputTextFlags_EnterReturnsTrue);
+                const Preset* cur      = fPresetManager->currentPreset();
+                const bool    sameName = cur && (cur->name == std::string(fPmNameBuffer));
+                const bool    isDupe   = !sameName && fPresetManager->nameExists(fPmNameBuffer);
+                if (isDupe) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.2f, 1.0f));
+                    ImGui::Text("A preset named \"%s\" already exists.", fPmNameBuffer);
+                    ImGui::PopStyleColor();
+                }
                 ImGui::Spacing();
-                if (doRename || ImGui::Button("Rename##rn", ImVec2(80.0f, 0.0f))) {
+                if (isDupe) ImGui::BeginDisabled();
+                const bool btnRename = ImGui::Button("Rename##rn", ImVec2(80.0f, 0.0f));
+                if (isDupe) ImGui::EndDisabled();
+                if (!isDupe && (doRename || btnRename)) {
                     const std::string name(fPmNameBuffer);
                     if (!name.empty()) {
                         if (fPresetManager->renameCurrent(name))

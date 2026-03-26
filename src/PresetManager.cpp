@@ -160,6 +160,13 @@ bool PresetManager::renameCurrent(const std::string& newName)
         return false;
     DISTRHO_SAFE_ASSERT_RETURN(fCurrentIndex >= 0 && fCurrentIndex < (int)fUserPresets.size(), false)
 
+    // No-op: preset already has this name.
+    if (fUserPresets[fCurrentIndex].name == newName)
+        return true;
+    // Reject: another preset already uses this name.
+    if (nameExists(newName))
+        return false;
+
     fUserPresets[fCurrentIndex].name = newName;
 
     const bool ok = saveUserPresetsToDisk();

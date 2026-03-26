@@ -15,10 +15,19 @@ endif()
 add_subdirectory("${DPF_ROOT}" dpf EXCLUDE_FROM_ALL)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Options
+# ─────────────────────────────────────────────────────────────────────────────
+
+option (CONFIG_BUILD_JACK_STANDALONE "Build JACK standalone format (for debugging)")
+if (CONFIG_BUILD_JACK_STANDALONE)
+    set (TARGET_JACK jack)
+endif ()
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Plugin targets
 # ─────────────────────────────────────────────────────────────────────────────
 dpf_add_plugin(ClassicReverb
-    TARGETS     vst2 vst3 clap jack
+    TARGETS     vst2 vst3 clap ${TARGET_JACK}
     FILES_DSP
         src/ClassicReverbPlugin.cpp
         src/CoreDSP.cpp
