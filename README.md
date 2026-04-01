@@ -46,6 +46,18 @@ To compile the Classic Reverb RE-04 plugin, you will need to have the following 
 
 3. The compiled plugin will be located in the `build/bin` directory.
 
+## Build Classic Reverb by Pipeline
+
+Classic Reverb RE-04 provided a Makefile, allowing you to build and pack Classic Reverb RE-04 in a pipeline. It resembles CI/CDs like GitHub Actions and Jenkins, but it has more convenience for building locally.
+
+Open a Unix-compatible environment (Msys2 on Windows, Bash on Linux / macOS), then run:
+
+```bash
+make
+```
+
+You will get a package file named as `build\ClassicReverb-RE04-{ARCH}-{OS}-{VERSION}-{GIT_COMMIT_ID}.zip`.
+
 ## Tools used
 
 - **Ghidra**: For disassembling and decompiling the original plugin's binary to understand its inner workings and behavior.
