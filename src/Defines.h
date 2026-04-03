@@ -86,6 +86,23 @@ static constexpr float kApDelay[3] = { 0.000200f, 0.000252f, 0.000317f };
 // Set to 0 to bypass (original plugin behaviour: no output limiting).
 #define CLASSIC_REVERB_OUTPUT_SOFT_CLIP 1
 
+// Set to 1 to inject a tiny randomisation noise (amplitude = kModAmp = 6e-8,
+// extracted from _DAT_00485f5c in the original DLL) into the reverb input
+// signal after the pre-delay stage but before early reflections and the
+// allpass / comb network.  The same noise sample is added to both L and R
+// channels, matching the original binary's behaviour.
+//
+// Purpose:
+//   - Prevents comb filters from resonating at exact harmonic frequencies,
+//     which can cause subtle "pitched flutter" artefacts on sustained tones.
+//   - Provides mild de-correlation across the FDN network.
+//   - Amplitude (~−164 dBFS) is completely inaudible but mathematically
+//     ensures the impulse response is never perfectly periodic.
+//
+// Set to 0 for a fully deterministic reverb network (may exhibit
+// deterministic comb resonances under certain test signals).
+#define CLASSIC_REVERB_INPUT_NOISE_MODULATION 1
+
 // Soft-clip ceiling in linear scale.  = 10^(+5/20) ≈ 1.778 (+5 dBFS).
 // Signals well below 0 dBFS pass through unaffected; peaks above 0 dBFS
 // are progressively attenuated; hard asymptote at +5 dBFS.

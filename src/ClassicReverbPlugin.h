@@ -3,6 +3,7 @@
 
 #include "DistrhoPlugin.hpp"
 #include "Structures.h"
+#include "Defines.h"
 #include "config.h"
 
 class ClassicReverbPlugin : public DISTRHO::Plugin
@@ -99,6 +100,21 @@ private:
     float fLoCutA1 = 0.0f, fLoCutA2 = 0.0f;
     float fLoCutXL[2] = {}, fLoCutYL[2] = {};
     float fLoCutXR[2] = {}, fLoCutYR[2] = {};
+
+#if CLASSIC_REVERB_INPUT_NOISE_MODULATION
+    // Xorshift32 PRNG — mirrors _RandExt usage in the original Delphi binary.
+    // Seed chosen to be non-zero (xorshift is undefined for state == 0).
+    uint32_t fRngState = 0x12345678u;
+
+    inline float nextNoise() noexcept
+    {
+        fRngState ^= fRngState << 13;
+        fRngState ^= fRngState >> 17;
+        fRngState ^= fRngState << 5;
+        // Map full uint32 range to (−0.5, +0.5) then scale by kModAmp.
+        return (float)(int32_t)fRngState * (1.0f / 4294967296.0f) * kModAmp;
+    }
+#endif // CLASSIC_REVERB_INPUT_NOISE_MODULATION
 
     // Preset bank
     String fPresetName[33];

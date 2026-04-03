@@ -25,6 +25,17 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         // ────── Early reflections (7-tap, stereo) ───────────────────────
         // Original DLL stores L and R separately (offset+0xf4 / offset+0xf8),
         // giving true stereo early reflections rather than a mono sum.
+#if CLASSIC_REVERB_INPUT_NOISE_MODULATION
+        // Inject randomisation noise matching _DAT_00485f5c in the original DLL.
+        // The same noise sample is added to both channels (as in the original binary).
+        // Amplitude ~−164 dBFS: fully inaudible, but prevents comb-filter
+        // resonance build-up at exact harmonic frequencies.
+        {
+            const float noise = nextNoise();
+            pdL += noise;
+            pdR += noise;
+        }
+#endif // CLASSIC_REVERB_INPUT_NOISE_MODULATION
         fErBufL.write(pdL);
         fErBufR.write(pdR);
 
