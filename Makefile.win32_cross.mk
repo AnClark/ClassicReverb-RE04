@@ -10,30 +10,26 @@
 UNAME_O = $(shell uname -o)
 UNAME_S = $(shell uname -s)
 ARCH = $(shell uname -m)
+OS_TYPE := Windows
 
 PROJECT_NAME := $(shell sed -n 's/^project(\([^ )]*\).*/\1/p' CMakeLists.txt)
 PROJECT_VERSION = $(shell sed -n 's/^project([^)]*VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
 GIT_COMMIT = $(shell git rev-parse --short=8 HEAD)
 
-BUILD_DIR = $(TMPDIR)/build_$(PROJECT_NAME)_$(ARCH)_$(UNAME_S)
-OUTPUT_FILE = $(BUILD_DIR)/$(PROJECT_NAME)-$(ARCH)-$(OS_TYPE)-$(PROJECT_VERSION)-$(GIT_COMMIT).tar.gz
+BUILD_DIR = $(TMPDIR)/build_$(PROJECT_NAME)_$(ARCH)_$(OS_TYPE)_CROSS
+OUTPUT_FILE = $(BUILD_DIR)/$(PROJECT_NAME)-$(ARCH)-$(OS_TYPE)-$(PROJECT_VERSION)-$(GIT_COMMIT).zip
+WIN32_TOOLCHAIN_FILE = $(BUILD_DIR)/Toolchain-mingw-w64-x86_64.cmake
 
-ifeq ($(UNAME_S),)
-# On this situation, the platform is not unix-compatible. This is not supported by us.
-  $(error You should use either Unix-compatible platform or Windows (Msys2) for running this Makefile.)
-endif
+$(info Cross-compiling for Windows.)
 
 ifeq ($(UNAME_S),Linux)
   $(info Detected operating system: Linux)
-  OS_TYPE := Linux
   TMPDIR := /tmp
-else ifeq ($(UNAME_O),Msys)
-  $(info Detected operating system: Windows (Msys2))
-  OS_TYPE := Windows
-  TMPDIR := $(TEMP)
 else ifeq ($(UNAME_S),Darwin)
   $(info Detected operating system: macOS)
-  $(error macOS is not supported yet. Try compiling manually.)
+else ifeq ($(UNAME_O),Msys)
+  $(info Detected operating system: Windows (Msys2))
+  $(error Detected Msys2 environment. If you want to build for Windows, please directly use Makefile instead of this one.)
 else
   $(info Your platform ($(UNAME_S)) is not supported yet. Try compiling manually.)
 endif
@@ -43,27 +39,32 @@ endif
 all: package
 
 check_dependencies:
-	@which g++ > /dev/null || (echo "Error: g++ is not installed." && exit 1)
+	@which x86_64-w64-mingw32-g++ > /dev/null || (echo "Error: x86_64-w64-mingw32-g++ is not installed." && exit 1)
 	@which cmake > /dev/null || (echo "Error: cmake is not installed." && exit 1)
 	@which ninja > /dev/null || (echo "Error: ninja is not installed." && exit 1)
 	@which ccache > /dev/null || (echo "Error: ccache is not installed." && exit 1)
-ifeq ($(OS_TYPE),Windows)
 	@which zip > /dev/null || (echo "Error: zip is not installed." && exit 1)
-else
-	@which tar > /dev/null || (echo "Error: tar is not installed." && exit 1)
-endif
 	@which git > /dev/null || (echo "Error: git is not installed." && exit 1)
 	@which sed > /dev/null || (echo "Error: sed is not installed." && exit 1)
 
 configure: check_dependencies
-	@cmake -S . -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+	@mkdir -p $(BUILD_DIR)
+	@echo "SET(CMAKE_SYSTEM_NAME Windows)" > $(WIN32_TOOLCHAIN_FILE)
+	@echo "SET(CMAKE_SYSTEM_PROCESSOR x86_64)" >> $(WIN32_TOOLCHAIN_FILE)
+	@echo "SET(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc)" >> $(WIN32_TOOLCHAIN_FILE)
+	@echo "SET(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)" >> $(WIN32_TOOLCHAIN_FILE)
+	@echo "SET(CMAKE_RC_COMPILER /usr/bin/x86_64-w64-mingw32-windres)" >> $(WIN32_TOOLCHAIN_FILE)
+	@echo "SET(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32/ ${PREFIX_PATH})" >> $(WIN32_TOOLCHAIN_FILE)
+
+	@cmake -S . -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+		-DCMAKE_TOOLCHAIN_FILE=$(WIN32_TOOLCHAIN_FILE)
 
 build: configure
-	@cmake --build $(BUILD_DIR)
+	@cmake --build $(BUILD_DIR) --parallel $(shell nproc)
 	@ccache -s
 
 package: build
-	cd $(BUILD_DIR) && tar -czvf $(OUTPUT_FILE) bin/
+	cd $(BUILD_DIR) && zip -r $(OUTPUT_FILE) bin/
 	@echo "Packaged $(OUTPUT_FILE) successfully."
 
 clean:
