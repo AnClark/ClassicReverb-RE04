@@ -15,7 +15,7 @@ PROJECT_NAME := $(shell sed -n 's/^project(\([^ )]*\).*/\1/p' CMakeLists.txt)
 PROJECT_VERSION = $(shell sed -n 's/^project([^)]*VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
 GIT_COMMIT = $(shell git rev-parse --short=8 HEAD)
 
-BUILD_DIR = $(TMPDIR)/build_$(PROJECT_NAME)_$(ARCH)_$(UNAME_S)
+BUILD_DIR = $(TMPDIR)/build_$(PROJECT_NAME)_$(ARCH)_$(OS_TYPE)
 OUTPUT_FILE = $(BUILD_DIR)/$(PROJECT_NAME)-$(ARCH)-$(OS_TYPE)-$(PROJECT_VERSION)-$(GIT_COMMIT).tar.gz
 
 ifeq ($(UNAME_S),)
@@ -63,7 +63,11 @@ build: configure
 	@ccache -s
 
 package: build
+ifeq ($(OS_TYPE),Windows)
+	cd $(BUILD_DIR) && zip -r $(OUTPUT_FILE) bin/
+else
 	cd $(BUILD_DIR) && tar -czvf $(OUTPUT_FILE) bin/
+endif
 	@echo "Packaged $(OUTPUT_FILE) successfully."
 
 clean:
