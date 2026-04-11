@@ -16,7 +16,7 @@ PROJECT_VERSION = $(shell sed -n 's/^project([^)]*VERSION \([0-9.]*\).*/\1/p' CM
 GIT_COMMIT = $(shell git rev-parse --short=8 HEAD)
 
 BUILD_DIR = $(TMPDIR)/build_$(PROJECT_NAME)_$(ARCH)_$(OS_TYPE)
-OUTPUT_FILE = $(BUILD_DIR)/$(PROJECT_NAME)-$(ARCH)-$(OS_TYPE)-$(PROJECT_VERSION)-$(GIT_COMMIT).tar.gz
+OUTPUT_FILE = $(BUILD_DIR)/$(PROJECT_NAME)-$(ARCH)-$(OS_TYPE)-$(PROJECT_VERSION)-$(GIT_COMMIT).$(PACKAGE_SUFFIX)
 
 ifeq ($(UNAME_S),)
 # On this situation, the platform is not unix-compatible. This is not supported by us.
@@ -26,10 +26,12 @@ endif
 ifeq ($(UNAME_S),Linux)
   $(info Detected operating system: Linux)
   OS_TYPE := Linux
+  PACKAGE_SUFFIX := tar.gz
   TMPDIR := /tmp
 else ifeq ($(UNAME_O),Msys)
   $(info Detected operating system: Windows (Msys2))
   OS_TYPE := Windows
+  PACKAGE_SUFFIX := zip
   TMPDIR := $(TEMP)
 else ifeq ($(UNAME_S),Darwin)
   $(info Detected operating system: macOS)
@@ -64,8 +66,10 @@ build: configure
 
 package: build
 ifeq ($(OS_TYPE),Windows)
+	rm -f $(OUTPUT_FILE)
 	cd $(BUILD_DIR) && zip -r $(OUTPUT_FILE) bin/
 else
+	rm -f $(OUTPUT_FILE)
 	cd $(BUILD_DIR) && tar -czvf $(OUTPUT_FILE) bin/
 endif
 	@echo "Packaged $(OUTPUT_FILE) successfully."
