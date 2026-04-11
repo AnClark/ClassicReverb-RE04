@@ -145,7 +145,8 @@ void ClassicReverbUI::onImGuiDisplay()
     static constexpr auto window_flags =
         ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_NoMove       |
-        ImGuiWindowFlags_NoSavedSettings;
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoScrollWithMouse;
 
     // White background for the host window
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
