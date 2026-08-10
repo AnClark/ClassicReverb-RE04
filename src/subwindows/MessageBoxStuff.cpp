@@ -18,17 +18,17 @@ void ClassicReverbUI::_handleMessageBoxIdle()
 
     // Always center this window when appearing
     const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(SCALE(0.5f), SCALE(0.5f)));
 
     if (ImGui::BeginPopupModal("Message", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::Dummy(ImVec2(0, 5));
+        ImGui::Dummy(ImVec2(0, SCALE(5)));
         ImGui::Text("%s", fMessageBoxQueue.front().c_str());
-        ImGui::Dummy(ImVec2(0, 10));
+        ImGui::Dummy(ImVec2(0, SCALE(10)));
 
         ImGui::Separator();
 
-        if (ImGui::Button("OK", ImVec2(60, 0)))
+        if (ImGui::Button("OK", ImVec2(SCALE(60), 0)))
         {
             // Apply a mutex to avoid possible conflict
             std::lock_guard<std::mutex> lock(fMessageQueueMutex);

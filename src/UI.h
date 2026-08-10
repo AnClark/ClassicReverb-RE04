@@ -123,6 +123,20 @@ private:
         fRequestMessagePopup = true;
     }
 
+    // -------------------------------------------------------------------
+    // Dear ImGui helper stuff
+
+    float fScaleFactor { 1.0f };    // Local cache of current scale factor
+                                    // (should be updated in constructor)
+
+    // A macro-like function to convert absolute values to DPI-scaled value.
+    // NOTICE: Dear ImGui itself does not support implicitly apply DPI scaling
+    //         on absolute size / pos values. We have to convert by ourselves.
+    inline float SCALE(float value)
+    {
+        return value * fScaleFactor;
+    }
+
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClassicReverbUI)
 };
 
