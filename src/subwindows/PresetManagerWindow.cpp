@@ -45,7 +45,7 @@ void ClassicReverbUI::_drawPresetManager()
         return;
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    constexpr float kMargin = 8.0f;
+    const float kMargin = SCALE(8.0f);
 
     ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x + kMargin, viewport->Pos.y + kMargin));
     ImGui::SetNextWindowSize(ImVec2(viewport->Size.x - 2.0f * kMargin,
@@ -53,13 +53,13 @@ void ClassicReverbUI::_drawPresetManager()
     ImGui::SetNextWindowBgAlpha(0.97f);
 
     // Push compact style so the overlay fits in the narrow plugin window.
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 4.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4.0f, 3.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,  ImVec2(4.0f, 2.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(SCALE(5.0f), SCALE(4.0f)));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(SCALE(4.0f), SCALE(3.0f)));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,  ImVec2(SCALE(4.0f), SCALE(2.0f)));
 
     // Enable rounding for UI elements
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 3.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, SCALE(3.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, SCALE(2.0f));
 
     // Apply our color theme
     ImGui::PushStyleColor(ImGuiCol_Button, kColDefault);
@@ -91,9 +91,9 @@ void ClassicReverbUI::_drawPresetManager()
         const float gap    = ImGui::GetStyle().ItemSpacing.x;
 
         // Button height for preset buttons
-        constexpr float kBtnH  = 19.0f;
+        const float kBtnH  = SCALE(19.0f);
         // Height of the action buttons row at the bottom of the user panel
-        constexpr float kActH  = 16.0f + 2.0f;
+        const float kActH  = SCALE(16.0f + 2.0f);
 
         // ── Column widths ────────────────────────────────────────────────
         const float leftW  = availW * 0.38f;
@@ -198,17 +198,17 @@ void ClassicReverbUI::_drawPresetManager()
             ImGui::TextDisabled("USER PRESETS");
             // NOTE: For convenience, I use hard-coded spacing here.
             //       FIXME: Shall I compute the spacing from style metrics instead? 
-            ImGui::SameLine(0, 130.0f); 
+            ImGui::SameLine(0, SCALE(130.0f)); 
 
             // ── Action buttons (At the same line of the title) ─────────────────────────────
             {
-                constexpr float kWDel    = 36.0f;
-                constexpr float kWRen    = 36.0f;
-                constexpr float kWUpd    = 36.0f;
-                constexpr float kWSaveAs = 36.0f;
-                constexpr float kWSep    = 8.0f;
-                constexpr float kWImp    = 36.0f;
-                constexpr float kWExp    = 36.0f;
+                const float kWDel    = SCALE(36.0f);
+                const float kWRen    = SCALE(36.0f);
+                const float kWUpd    = SCALE(36.0f);
+                const float kWSaveAs = SCALE(36.0f);
+                const float kWSep    = SCALE(8.0f);
+                const float kWImp    = SCALE(36.0f);
+                const float kWExp    = SCALE(36.0f);
 
                 const bool isUserPresetActive = (fPresetManager->currentType() == PresetType::User &&
                                             fPresetManager->currentIndex() >= 0);
@@ -315,10 +315,10 @@ void ClassicReverbUI::_drawPresetManager()
                 if (!fPresetManager->currentPreset()) ImGui::EndDisabled();
             }
 
-            ImGui::SameLine(0, 10.0f);
+            ImGui::SameLine(0, SCALE(10.0f));
             {
-                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
-                if (ImGui::Button(ICON_FA_TIMES "##pmclose", ImVec2(28.0f, kActH)))
+                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(SCALE(4.0f), 0.0f));
+                if (ImGui::Button(ICON_FA_TIMES "##pmclose", ImVec2(SCALE(28.0f), kActH)))
                     fPresetManagerOpened = false;
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Close Preset Manager");
@@ -398,7 +398,7 @@ void ClassicReverbUI::_drawPresetManager()
                                        ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("Preset name:");
-                ImGui::SetNextItemWidth(260.0f);
+                ImGui::SetNextItemWidth(SCALE(260.0f));
                 bool doSave = ImGui::InputText("##PMSaveName", fPmNameBuffer,
                                                sizeof(fPmNameBuffer),
                                                ImGuiInputTextFlags_EnterReturnsTrue);
@@ -410,7 +410,7 @@ void ClassicReverbUI::_drawPresetManager()
                 }
                 ImGui::Spacing();
                 if (doSave || ImGui::Button(nameExists ? "Overwrite##sv" : "Save##sv",
-                                            ImVec2(90.0f, 0.0f)))
+                                            ImVec2(SCALE(90.0f), 0.0f)))
                 {
                     const std::string name(fPmNameBuffer);
                     if (!name.empty()) {
@@ -437,7 +437,7 @@ void ClassicReverbUI::_drawPresetManager()
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel##sv", ImVec2(70.0f, 0.0f))) {
+                if (ImGui::Button("Cancel##sv", ImVec2(SCALE(70.0f), 0.0f))) {
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
@@ -451,7 +451,7 @@ void ClassicReverbUI::_drawPresetManager()
                                        ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("New name:");
-                ImGui::SetNextItemWidth(260.0f);
+                ImGui::SetNextItemWidth(SCALE(260.0f));
                 bool doRename = ImGui::InputText("##PMRenameName", fPmNameBuffer,
                                                  sizeof(fPmNameBuffer),
                                                  ImGuiInputTextFlags_EnterReturnsTrue);
@@ -465,7 +465,7 @@ void ClassicReverbUI::_drawPresetManager()
                 }
                 ImGui::Spacing();
                 if (isDupe) ImGui::BeginDisabled();
-                const bool btnRename = ImGui::Button("Rename##rn", ImVec2(80.0f, 0.0f));
+                const bool btnRename = ImGui::Button("Rename##rn", ImVec2(SCALE(80.0f), 0.0f));
                 if (isDupe) ImGui::EndDisabled();
                 if (!isDupe && (doRename || btnRename)) {
                     const std::string name(fPmNameBuffer);
@@ -479,7 +479,7 @@ void ClassicReverbUI::_drawPresetManager()
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel##rn", ImVec2(70.0f, 0.0f))) {
+                if (ImGui::Button("Cancel##rn", ImVec2(SCALE(70.0f), 0.0f))) {
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
@@ -496,7 +496,7 @@ void ClassicReverbUI::_drawPresetManager()
                 if (cur)
                     ImGui::Text("Overwrite \"%s\" with current parameters?", cur->name.c_str());
                 ImGui::Spacing();
-                if (ImGui::Button("Overwrite##upd", ImVec2(80.0f, 0.0f))) {
+                if (ImGui::Button("Overwrite##upd", ImVec2(SCALE(80.0f), 0.0f))) {
                     if (fPresetManager->overwriteCurrent())
                         _showMessageBox("Preset " + cur->name + " updated.");
                     else
@@ -505,7 +505,7 @@ void ClassicReverbUI::_drawPresetManager()
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel##upd", ImVec2(70.0f, 0.0f))) {
+                if (ImGui::Button("Cancel##upd", ImVec2(SCALE(70.0f), 0.0f))) {
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
@@ -523,7 +523,7 @@ void ClassicReverbUI::_drawPresetManager()
                     ImGui::Text("Delete \"%s\"?  This cannot be undone.", cur->name.c_str());
                 ImGui::Spacing();
                 ImGui::PushStyleColor(ImGuiCol_Button, kColDanger);
-                if (ImGui::Button("Delete##dl", ImVec2(70.0f, 0.0f))) {
+                if (ImGui::Button("Delete##dl", ImVec2(SCALE(70.0f), 0.0f))) {
                     if (fPresetManager->deleteCurrent())
                         _showMessageBox("Preset deleted.");
                     else
@@ -533,7 +533,7 @@ void ClassicReverbUI::_drawPresetManager()
                 }
                 ImGui::PopStyleColor();
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel##dl", ImVec2(70.0f, 0.0f))) {
+                if (ImGui::Button("Cancel##dl", ImVec2(SCALE(70.0f), 0.0f))) {
                     fPmDialogMode = PmDialogMode::None;
                     ImGui::CloseCurrentPopup();
                 }
