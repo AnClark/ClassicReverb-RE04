@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(ClassicReverb VERSION 1.0.1)
+project(ClassicReverb VERSION 1.1.0)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DPF (DISTRHO Plugin Framework)
