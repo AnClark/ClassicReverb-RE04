@@ -10,10 +10,11 @@
 #include "../fonts/FontAwesome5.hpp"
 #include "../fonts/IconFontAwesome5.h"
 
+static constexpr float kScaleMarkInitFontSize = 12.5f;
 ImGuiKnobs_Mod::KnobScaleMarkStyle kScaleMarkStyle = {
     .outer_radius = 1.20f,
     .tick_length  = 0.50f,    
-    .font_size    = 12.5f,
+    .font_size    = kScaleMarkInitFontSize,
 };
 
 void ClassicReverbUI::_loadFonts()
@@ -75,7 +76,7 @@ void ClassicReverbUI::_loadFonts()
     kScaleMarkStyle.custom_font = io.Fonts->Fonts[2];
 
     // Remember to scale the scale mark font's size to screen DPI
-    kScaleMarkStyle.font_size *= getScaleFactor();
+    kScaleMarkStyle.font_size = kScaleMarkInitFontSize * getScaleFactor();
 }
 
 void ClassicReverbUI::_drawChassisBackground(float margin, float rounding)
