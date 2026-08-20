@@ -176,13 +176,13 @@ void ClassicReverbUI::_drawKjaerhusLogo(const ImVec2& size)
     //
     ImGuiExt::AddTextScaled(draw_list, ImGui::GetIO().Fonts->Fonts[2], SCALE(20.0f),
                             ImVec2(pos.x + SCALE(10.0f), pos.y + SCALE(8.0f)), IM_COL32(255, 255, 255, 255),
-                            "KJÆRHUS AUDIO", 0.65f, 1.0f);
+                            "ANCLARK STUDIO", 0.65f, 1.0f);
     
     //
-    // Draw inform text ("Open Source Recreation / Recrated by AnClark") with a semi-transparent rounded-rect background.
+    // Draw inform text ("Open Source Recreation / Classic Series Reborn") with a semi-transparent rounded-rect background.
     //
     {
-        const char* info_text = "Recreated by AnClark";
+        const char* info_text = "Classic Series Reborn";
         const float kOSR_FontSz   = SCALE(16.0f);
         const float kOSR_ScaleX   = 0.8f;
         const float kOSR_ScaleY   = 0.8f;
