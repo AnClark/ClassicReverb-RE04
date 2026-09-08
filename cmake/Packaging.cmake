@@ -3,11 +3,14 @@
 if(APPLE)
     # Install plugins where macOS audio hosts look for them.
     install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.vst/"
-        DESTINATION "Library/Audio/Plug-Ins/VST/${PROJECT_NAME}.vst")
+        DESTINATION "Library/Audio/Plug-Ins/VST/${PROJECT_NAME}.vst"
+        COMPONENT VST2)
     install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.vst3/"
-        DESTINATION "Library/Audio/Plug-Ins/VST3/${PROJECT_NAME}.vst3")
+        DESTINATION "Library/Audio/Plug-Ins/VST3/${PROJECT_NAME}.vst3"
+        COMPONENT VST3)
     install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.clap/"
-        DESTINATION "Library/Audio/Plug-Ins/CLAP/${PROJECT_NAME}.clap")
+        DESTINATION "Library/Audio/Plug-Ins/CLAP/${PROJECT_NAME}.clap"
+        COMPONENT CLAP)
 else()
     # On Windows and Linux, only VST3 format is put into a directory,
     # while VST 2.4 and CLAP are single file.
@@ -42,6 +45,7 @@ endif()
 
 if(APPLE)
     set(CPACK_GENERATOR "productbuild")
+    set(CPACK_COMPONENTS_ALL VST2 VST3 CLAP)
     set(CPACK_PACKAGING_INSTALL_PREFIX "/")
     set(CPACK_PRODUCTBUILD_IDENTIFIER ${PRODUCTBUILD_IDENTIFIER})
     set(CPACK_PRODUCTBUILD_DOMAINS ON)
