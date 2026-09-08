@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 project(ClassicReverb-RE04 VERSION 1.1.1 DESCRIPTION "Classic Reverb RE-04 audio plugin")
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Metadata (for CPack)
+# ─────────────────────────────────────────────────────────────────────────────
+
+set (AUTHOR "AnClark Liu")
+set (INSTALL_DIRECTORY ${PROJECT_NAME})
+set (ICON_PATH "${PROJECT_SOURCE_DIR}/Screenshot.png")  # TODO: Re-design icon
+set (PRODUCTBUILD_IDENTIFIER "com.anclark.classicreverb.re04")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DPF (DISTRHO Plugin Framework)
@@ -65,6 +73,12 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 # Add configure file
 configure_file (src/config.h.in ${PROJECT_BINARY_DIR}/config.h @ONLY)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Packaging rules
+# ─────────────────────────────────────────────────────────────────────────────
+
+include("${PROJECT_SOURCE_DIR}/cmake/Packaging.cmake")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Compiler warnings / options

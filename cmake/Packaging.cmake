@@ -1,0 +1,65 @@
+# Installation and CPack packaging for Classic Series.
+
+if(APPLE)
+    # Install plugins where macOS audio hosts look for them.
+    install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.vst/"
+        DESTINATION "Library/Audio/Plug-Ins/VST/${PROJECT_NAME}.vst")
+    install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.vst3/"
+        DESTINATION "Library/Audio/Plug-Ins/VST3/${PROJECT_NAME}.vst3")
+    install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.clap/"
+        DESTINATION "Library/Audio/Plug-Ins/CLAP/${PROJECT_NAME}.clap")
+else()
+    # On Windows and Linux, only VST3 format is put into a directory,
+    # while VST 2.4 and CLAP are single file.
+    install(FILES "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}-vst2${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        DESTINATION ".")
+    install(DIRECTORY "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.vst3/"
+        DESTINATION "${PROJECT_NAME}.vst3")
+    install(FILES "${PROJECT_BINARY_DIR}/bin/${PROJECT_NAME}.clap"
+        DESTINATION ".")
+endif()
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR ${AUTHOR})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_DESCRIPTION})
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${INSTALL_DIRECTORY}")
+
+set(name "${PROJECT_NAME}")
+configure_file(
+    "${PROJECT_SOURCE_DIR}/dpf/utils/plugin.pkg/welcome.txt.in"
+    "${PROJECT_BINARY_DIR}/CPackWelcome.txt"
+    @ONLY)
+
+execute_process(
+    COMMAND git rev-parse --short=8 HEAD
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE PLUGIN_GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if(NOT PLUGIN_GIT_COMMIT)
+    set(PLUGIN_GIT_COMMIT "unknown")
+endif()
+
+if(APPLE)
+    set(CPACK_GENERATOR "productbuild")
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/")
+    set(CPACK_PRODUCTBUILD_IDENTIFIER ${PRODUCTBUILD_IDENTIFIER})
+    set(CPACK_PRODUCTBUILD_DOMAINS ON)
+    set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE OFF)
+    set(CPACK_PRODUCTBUILD_DOMAINS_USER ON)
+    set(CPACK_PRODUCTBUILD_DOMAINS_ROOT ON)
+    set(CPACK_RESOURCE_FILE_WELCOME "${PROJECT_BINARY_DIR}/CPackWelcome.txt")
+    set(CPACK_PACKAGE_FILE_NAME
+        "${PROJECT_NAME}-${CMAKE_SYSTEM_PROCESSOR}-macOS-${PROJECT_VERSION}-${PLUGIN_GIT_COMMIT}")
+elseif(WIN32)
+    set(CPACK_GENERATOR "ZIP")
+    set(CPACK_PACKAGE_FILE_NAME
+        "${PROJECT_NAME}-${CMAKE_SYSTEM_PROCESSOR}-Windows-${PROJECT_VERSION}-${PLUGIN_GIT_COMMIT}")
+else()
+    set(CPACK_GENERATOR "ZIP")
+    set(CPACK_PACKAGE_FILE_NAME
+        "${PROJECT_NAME}-${CMAKE_SYSTEM_PROCESSOR}-Linux-${PROJECT_VERSION}-${PLUGIN_GIT_COMMIT}")
+endif()
+
+include(CPack)
