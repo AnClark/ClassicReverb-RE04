@@ -25,9 +25,8 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${PROJECT_DESCRIPTION})
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${INSTALL_DIRECTORY}")
 
-set(name "${PROJECT_NAME}")
 configure_file(
-    "${PROJECT_SOURCE_DIR}/dpf/utils/plugin.pkg/welcome.txt.in"
+    "${PROJECT_SOURCE_DIR}/cmake/CPackWelcome.txt.in"
     "${PROJECT_BINARY_DIR}/CPackWelcome.txt"
     @ONLY)
 
@@ -60,6 +59,24 @@ else()
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME
         "${PROJECT_NAME}-${CMAKE_SYSTEM_PROCESSOR}-Linux-${PROJECT_VERSION}-${PLUGIN_GIT_COMMIT}")
+endif()
+
+# README / License stuff
+if(APPLE)
+    # On macOS, Integrate README and license into install wizard.
+    # CPack only allows 4 formats. Convert them first.
+    configure_file("${PROJECT_SOURCE_DIR}/README.md" "${PROJECT_BINARY_DIR}/CPackREADME.txt" COPYONLY)
+    configure_file ("${PROJECT_SOURCE_DIR}/LICENSE" "${PROJECT_BINARY_DIR}/CPackLICENSE.txt" COPYONLY)
+
+    set(CPACK_RESOURCE_FILE_README "${PROJECT_BINARY_DIR}/CPackREADME.txt")
+    set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/CPackLICENSE.txt")
+else()
+    # On Windows / Linux, no installer provided. Put them into Zip file
+    install(FILES
+        "${PROJECT_SOURCE_DIR}/README.md"
+        "${PROJECT_SOURCE_DIR}/LICENSE"
+        DESTINATION "."
+    )
 endif()
 
 include(CPack)
