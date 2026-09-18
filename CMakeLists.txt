@@ -33,6 +33,18 @@ if (CONFIG_BUILD_JACK_STANDALONE)
 endif ()
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Resources
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Fonts
+set (FONT_FILES
+    fonts/LiberationSans-Regular.cpp
+    fonts/CormorantFont.cpp
+    fonts/FontAwesome5.cpp
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Plugin targets
 # ─────────────────────────────────────────────────────────────────────────────
 dpf_add_plugin(${PROJECT_NAME}
@@ -49,6 +61,7 @@ dpf_add_plugin(${PROJECT_NAME}
         src/subwindows/MessageBoxStuff.cpp
         widgets/dpf-imgui/DearImGui.cpp
         widgets/imgui-knobs-mod/imgui-knobs.cpp
+        ${FONT_FILES}
     NO_SHARED_RESOURCES
 )
 
