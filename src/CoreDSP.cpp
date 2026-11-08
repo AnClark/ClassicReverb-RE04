@@ -18,6 +18,14 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         float dryL = inL[i];
         float dryR = inR[i];
 
+#if CLASSIC_REVERB_SILENCE_GATE
+        if (fSilenceGate.shouldSkipProcessing(dryL, dryR))
+        {
+            outL[i] = outR[i] = 0.0f;
+            continue;
+        }
+#endif // CLASSIC_REVERB_SILENCE_GATE
+
         // ────── Pre-delay ────────────────────────────────────────────
         float pdL, pdR;
         fPreDelay.process(dryL, dryR, pdL, pdR, fPreDelaySamples);
@@ -110,6 +118,17 @@ void ClassicReverbPlugin::run(const float** inputs, float** outputs, uint32_t fr
         outL[i] = rawL;
         outR[i] = rawR;
 #endif
+
+#if CLASSIC_REVERB_SILENCE_GATE
+        // Feed the gate the dry input plus the PRE-wet reverb output
+        // (wetL/wetR are taken before Mix/Level, so a LEVEL=0 setting cannot
+        // mask a still-ringing tank).  The function returns void: on the
+        // sample where the gate arms it invokes clearBufferCallback, which
+        // clears the tank so the early-out starts from a clean state.
+        fSilenceGate.updateInputSignal(dryL, dryR, wetL, wetR, fSampleRate, [&](){
+            this->clearReverbBuffers();
+        });
+#endif // CLASSIC_REVERB_SILENCE_GATE
     }
 }
 

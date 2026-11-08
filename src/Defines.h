@@ -103,6 +103,12 @@ static constexpr float kApDelay[3] = { 0.000200f, 0.000252f, 0.000317f };
 // deterministic comb resonances under certain test signals).
 #define CLASSIC_REVERB_INPUT_NOISE_MODULATION 1
 
+// Set to 1 to apply silence gate on DSP processing.
+// Silence gate skips processing when input signal is considered inaudible
+// (lower than the thresholds defined in SilenceGate.h), preventing unnecessary
+// CPU usage on idle.
+#define CLASSIC_REVERB_SILENCE_GATE 1
+
 // Soft-clip ceiling in linear scale.  = 10^(+5/20) ≈ 1.778 (+5 dBFS).
 // Signals well below 0 dBFS pass through unaffected; peaks above 0 dBFS
 // are progressively attenuated; hard asymptote at +5 dBFS.

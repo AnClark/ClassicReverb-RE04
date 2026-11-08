@@ -5,6 +5,9 @@
 #include "Structures.h"
 #include "Defines.h"
 #include "config.h"
+#if CLASSIC_REVERB_SILENCE_GATE
+#include "SilenceGate.h"
+#endif // CLASSIC_REVERB_SILENCE_GATE
 
 class ClassicReverbPlugin : public DISTRHO::Plugin
 {
@@ -62,6 +65,13 @@ private:
     // ── Buffer allocation ─────────────────────────────────────────────────
     void allocateBuffers();
 
+#if CLASSIC_REVERB_SILENCE_GATE
+    // Clear all delay/filter state.  Called by the silence gate when it
+    // arms, so the sample-by-sample early-out starts from a truly empty tank
+    // (and no denormal residue keeps circulating).
+    void clearReverbBuffers();
+#endif // CLASSIC_REVERB_SILENCE_GATE
+
     // ── Coefficient update ────────────────────────────────────────────────
     void updateCoefficients();
 
@@ -115,6 +125,10 @@ private:
         return (float)(int32_t)fRngState * (1.0f / 4294967296.0f) * kModAmp;
     }
 #endif // CLASSIC_REVERB_INPUT_NOISE_MODULATION
+
+#if CLASSIC_REVERB_SILENCE_GATE
+    SilenceGate fSilenceGate;
+#endif // CLASSIC_REVERB_SILENCE_GATE
 
     // Preset bank
     String fPresetName[33];
