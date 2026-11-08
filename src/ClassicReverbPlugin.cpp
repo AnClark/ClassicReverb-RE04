@@ -188,6 +188,33 @@ void ClassicReverbPlugin::allocateBuffers()
     fLoCutXR[0] = fLoCutXR[1] = fLoCutYR[0] = fLoCutYR[1] = 0.0f;
 }
 
+#if CLASSIC_REVERB_SILENCE_GATE
+// ── Silence gate: tank clear ─────────────────────────────────────────────
+// Invoked once when the silence gate arms.  At that point the PRE-wet output
+// is already below -120 dBFS, so zeroing the buffers is inaudible; it mainly
+// guarantees a click-free restart (no stale tail) and drops any denormal
+// residue while the gate holds the early-out.
+// reset(n) with n = current size only zeroes the used span and rewinds the
+// write pointer, so delay lengths are preserved.
+void ClassicReverbPlugin::clearReverbBuffers()
+{
+    for (int c = 0; c < 16; ++c)
+    {
+        fCombBuf[c].reset(fCombBuf[c].size);
+        fCombDampState[c] = 0.0f;
+    }
+
+    for (int a = 0; a < 3; ++a)
+        fAP[a].reset(fAP[a].size);
+
+    fErBufL.reset(fErBufL.size);
+    fErBufR.reset(fErBufR.size);
+    fPreDelay.reset();
+
+    fLoCutXL[0] = fLoCutXL[1] = fLoCutYL[0] = fLoCutYL[1] = 0.0f;
+    fLoCutXR[0] = fLoCutXR[1] = fLoCutYR[0] = fLoCutYR[1] = 0.0f;
+}
+#endif // CLASSIC_REVERB_SILENCE_GATE
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Entry point
