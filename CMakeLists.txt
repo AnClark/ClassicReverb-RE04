@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(ClassicReverb-RE04 VERSION 1.1.1 DESCRIPTION "Classic Reverb RE-04 audio plugin")
+project(ClassicReverb-RE04 VERSION 1.2.0 DESCRIPTION "Classic Reverb RE-04 audio plugin")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Metadata (for CPack)
