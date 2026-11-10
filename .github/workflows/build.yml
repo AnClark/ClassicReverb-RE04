@@ -11,8 +11,8 @@
 #
 # If you own a Apple Silicon Mac, you can run macos-universal target directly on your macOS, following the steps below:
 #     1. Install XCode command line tools via `xcode-select --install`
-#     2. Install dependencies via Homebrew or MacPorts:
-#            cmake ccache sdl2
+#     2. Install the following dependencies via Homebrew or MacPorts:
+#            cmake  ccache  ninja  sdl2
 #     3. Run Act:
 #            act -j macos-universal -P macos-latest=-self-hosted --artifact-server-path=<ARTIFACT OUTPUT DIR>
 #        It will build directly under the repository folder, using the tools on your macOS host.
