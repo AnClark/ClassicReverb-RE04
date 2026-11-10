@@ -8,7 +8,7 @@ on:
 
 jobs:
   linux-x86_64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04    # See https://github.com/actions/runner-images for available Ubuntu images.
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
       #       WSTD_DL3Y/*.tar.gz
 
   win64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04    # See https://github.com/actions/runner-images for available Ubuntu images.
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
