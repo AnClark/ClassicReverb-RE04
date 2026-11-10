@@ -31,6 +31,20 @@ jobs:
         with:
           submodules: recursive
 
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      #
+      # CCACHE_DIR:         Specify a fixed ccache directory.
+      # CCACHE_NOHASHDIR=1: Do not record full path; use relative path instead. Relative path is consistent
+      #                     among runs.
+      # CCACHE_BASEDIR:     Specify working directory. CCACHE_NOHASHDIR depends on this.
+      #
+      # WARNING: Do NOT set CCACHE_DIR to the real working ccache dir, since Act may clean it every time!
+      - name: Set up isolated ccache for CI
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
+
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -82,6 +96,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      - name: Set up isolated ccache for CI
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -155,10 +176,17 @@ jobs:
         run: |
           echo "No need to install dependencies on macOS."
 
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      - name: Set up isolated ccache for CI
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
+
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-win64
+          key: ${{ github.job }}-macos
           max-size: 2G
 
       - name: Build macOS universal plugins
