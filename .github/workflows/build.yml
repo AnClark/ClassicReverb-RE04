@@ -79,16 +79,6 @@ jobs:
           path: |
             build/*.zip
 
-      #- uses: softprops/action-gh-release@v1
-      #  if: startsWith(github.ref, 'refs/tags/')
-      #  with:
-      #    tag_name: ${{ github.ref_name }}
-      #    name: ${{ github.ref_name }}
-      #    draft: false
-      #    prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*.tar.gz
-
   win64:
     runs-on: ubuntu-24.04    # See https://github.com/actions/runner-images for available Ubuntu images.
     steps:
@@ -155,16 +145,6 @@ jobs:
           path: |
             build/*.zip
 
-      #- uses: softprops/action-gh-release@v1
-      #  if: startsWith(github.ref, 'refs/tags/')
-      #  with:
-      #    tag_name: ${{ github.ref_name }}
-      #    name: ${{ github.ref_name }}
-      #    draft: false
-      #    prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*.tar.gz
-
   macos-universal:
     runs-on: macos-latest
     steps:
@@ -215,12 +195,28 @@ jobs:
           path: |
             build/*.pkg
 
-      #- uses: softprops/action-gh-release@v1
-      #  if: startsWith(github.ref, 'refs/tags/')
-      #  with:
-      #    tag_name: ${{ github.ref_name }}
-      #    name: ${{ github.ref_name }}
-      #    draft: false
-      #    prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*-macOS.pkg
+  # Create exactly ONE GitHub Release for the tag, after ALL builds succeed.
+  # Doing this in a single dedicated job (instead of inside each build job)
+  # avoids parallel jobs racing to create the same release.
+  release:
+    needs: [linux-x86_64, win64, macos-universal]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write    # Required for creating a release with the default GITHUB_TOKEN
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true    # Gather all artifacts into a single directory
+
+      - name: Create draft release and upload packages
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: true
+          prerelease: false
+          files: dist/*
+          fail_on_unmatched_files: true
