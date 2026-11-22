@@ -272,7 +272,7 @@ void ClassicReverbUI::onImGuiDisplay()
                         btnLabel += "##Preset";
                         if (ImGuiExt::HardwareButton(btnLabel.c_str(),
                                            ImVec2(SCALE(100 - 3), ImGui::GetFrameHeight()),
-                                           ImVec4(0x2f / 255.0f, 0x4d / 255.0f, 0x44 / 255.0f, 1.0f)))
+                                           ImVec4(0x2e / 255.0f, 0x3f / 255.0f, 0x50 / 255.0f, 1.0f)))  // Base color: #2e3f50
                         {
                             fPresetManagerOpened = !fPresetManagerOpened;
                         }

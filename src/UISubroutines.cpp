@@ -291,8 +291,9 @@ void ClassicReverbUI::_addKnob(Parameters paramId, const char* label, float v_mi
     if (use_pivot)     flags |= ImGuiKnobFlags_Pivot;
 
     // Knob color
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x2f + 70, 0x4d + 70, 0x44 + 70, 0xff));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x2f + 90, 0x4d + 90, 0x44 + 90, 0xff));
+    // Base color: #2e3f50
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x2e + 70, 0x3f + 70, 0x4d + 70, 0xff));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x2e + 90, 0x3f + 90, 0x4d + 90, 0xff));
 
     // Now default font is Droid Sans, so we need to push the chassis font for the knob label and scale marks.
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
