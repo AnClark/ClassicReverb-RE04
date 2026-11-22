@@ -106,8 +106,8 @@ void ClassicReverbUI::_drawChassisBackground(float margin, float rounding)
             IM_COL32(0, 0, 0, alpha), rounding);
     }
 
-    // Main panel – base colour #b77f58
-    dl->AddRectFilled(panelMin, panelMax, IM_COL32(0xb7, 0x7f, 0x58, 0xff), rounding);
+    // Main panel – base colour #b77f58, slightly darker than RE-01
+    dl->AddRectFilled(panelMin, panelMax, IM_COL32(0xb7 - 15, 0x7f - 15, 0x58 - 5, 0xff), rounding);
 
     // Subtle top-left highlight edge to reinforce the upper-left light
     dl->AddRect(panelMin, panelMax, IM_COL32(0xff, 0xe0, 0xb8, 60), rounding, 0, 1.5f); // 1.5f * scale);
